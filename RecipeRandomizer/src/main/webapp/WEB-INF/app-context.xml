@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns="http://www.springframework.org/schema/beans"
+       xmlns:jdbc="http://www.springframework.org/schema/jdbc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:jee="http://www.springframework.org/schema/jee"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:cache="http://www.springframework.org/schema/cache"
+       xmlns:cashe="http://www.springframework.org/schema/cache"
+       xsi:schemaLocation="
+    http://www.springframework.org/schema/beans
+    http://www.springframework.org/schema/beans/spring-beans.xsd
+    http://www.springframework.org/schema/data/jpa
+    http://www.springframework.org/schema/data/jpa/spring-jpa-1.0.xsd
+    http://www.springframework.org/schema/tx
+    http://www.springframework.org/schema/tx/spring-tx-3.1.xsd
+    http://www.springframework.org/schema/aop
+    http://www.springframework.org/schema/aop/spring-aop.xsd
+    http://www.springframework.org/schema/cache
+    http://www.springframework.org/schema/cache/spring-cache.xsd
+    http://www.springframework.org/schema/context
+    http://www.springframework.org/schema/context/spring-context-3.1.xsd
+    http://www.springframework.org/schema/jdbc
+    http://www.springframework.org/schema/jdbc/spring-jdbc.xsd
+    http://www.springframework.org/schema/mvc
+    http://www.springframework.org/schema/mvc/spring-mvc.xsd">
+
+
+    <context:component-scan base-package="persistence"/>
+    <mvc:annotation-driven/>
+
+    <tx:annotation-driven transaction-manager="txManager"/>
+
+    <jpa:repositories base-package="persistence.dao.repositories"
+                      entity-manager-factory-ref="entityManagerFactory" transaction-manager-ref="txManager"/>
+
+    <bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalEntityManagerFactoryBean">
+        <property name="persistenceUnitName" value="item"/>
+    </bean>
+    <bean id="txManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+        <property name="entityManagerFactory" ref="entityManagerFactory"/>
+    </bean>
+
+    <!--     AOP         -->
+    <!--    <bean id="myLogger" class="aspects.MyLogger"/>-->
+    <!--    <bean id="securityAspect" class="aspects.SecurityAspect"/>-->
+    <!--    <bean id="userAuthorized" class="models.Authorization" scope="session" lazy-init="false"...>-->
+    <!--    <aop:config...>-->
+
+    <!--     Security      -->
+
+
+    <!--     Cache      -->
+    <cashe:annotation-driven/>
+    <bean id="cacheManager" class="org.springframework.cache.support.SimpleCacheManager">
+        <property name="caches">
+            <set>
+                <bean id="recipeImage" class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"/>
+<!--                <bean id="" class="org.springframework.cache.concurrent.ConcurrentMapCacheFactoryBean"/>-->
+            </set>
+        </property>
+    </bean>
+
+    <!-- Конфігурація для обробки завантажень файлів -->
+<!--    <bean id="multipartResolver" class="org.springframework.web.multipart.support.StandardServletMultipartResolver">-->
+<!--        <constructor-arg value="15728640" /> &lt;!&ndash; 15 МБ в байтах &ndash;&gt;-->
+<!--    </bean>-->
+
+    <!--    <bean id="myLogger" class="aspects.MyLogger"/>-->
+    <bean id="allergen" class="persistence.entity.Allergen"/>
+    <bean id="customTag" class="persistence.entity.CustomTag"/>
+    <bean id="dishByIngredients" class="persistence.entity.DishByIngredients"/>
+    <bean id="mealCategory" class="persistence.entity.MealCategory"/>
+    <bean id="regionalCuisine" class="persistence.entity.RegionalCuisine"/>
+    <bean id="recipe" class="persistence.entity.Recipe"/>
+    <bean id="imageBuffer" class="persistence.entity.ImageBuffer"/>
+    <bean id="user" class="persistence.entity.User"/>
+
+
+</beans>
