@@ -19,6 +19,11 @@ import java.util.Optional;
 public interface IRecipeRepository extends CrudRepository<Recipe, Long> {
     @Query(value = "select name from recipes where id = ?1", nativeQuery = true)
     Optional<String> findNameById(long id);
+    @Modifying
+    @Query(value = "delete r from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.id = ?1 and u.username = ?2", nativeQuery = true)
+    void deleteByIdAndUsername(long recipeId, String username);
 
     @Modifying
     @Query(value = "update recipes\n" +

@@ -7,6 +7,7 @@ import persistence.entity.RegionalCuisine;
 public class RegionalCuisineDTO {
     private long id;
     private String name;
+    public RegionalCuisineDTO(){}
     public RegionalCuisineDTO(RegionalCuisine regionalCuisine) {
         this.id = regionalCuisine.getId();
         this.name = regionalCuisine.getName();

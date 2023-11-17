@@ -7,6 +7,7 @@ import persistence.entity.MealCategory;
 public class MealCategoryDTO {
     private long id;
     private String name;
+    public MealCategoryDTO(){}
     public MealCategoryDTO(MealCategory mealCategory) {
         this.id = mealCategory.getId();
         this.name = mealCategory.getName();

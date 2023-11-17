@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import models.UserDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
@@ -12,6 +13,7 @@ import persistence.dao.repositories.IUserRepository;
 import persistence.dao.services.interfaces.IUserService;
 import persistence.entity.User;
 
+import java.time.LocalDate;
 import java.util.Optional;
 
 @Slf4j
@@ -33,7 +35,6 @@ public class UserServiceImpl implements IUserService {
                 .disabled(!optional.get().isEnabled())
                 .build();
     }
-
 
 
     @Nullable
@@ -78,7 +79,58 @@ public class UserServiceImpl implements IUserService {
         ExceptionMessage(String message) {
             this.message = message;
         }
+    }
 
+    @Override
+    public void updateLastLoginDateByUsername(String username) {
+        LocalDate loginDate = LocalDate.now();
+        userRepository.updateLastLoginDateByUsername(loginDate, username);
+    }
+
+    @Override
+    @Secured("ROLE_ADMIN")
+    public String changeUserActivityStatus(Long userId) {
+        if (userId == null)
+            return Message.ERROR_WHEN_CHANGING_ACTIVATION_STATUS.message;
+
+        boolean activityStatus = userRepository.isEnabled(userId);
+        userRepository.changeUserActivityStatus(userId);
+        boolean currentActivityStatus = userRepository.isEnabled(userId);
+
+        if (activityStatus == currentActivityStatus)
+            return Message.ERROR_WHEN_CHANGING_ACTIVATION_STATUS.message;
+        else if (currentActivityStatus)
+            return Message.SUCCESSFUL_ACTIVATION.message;
+        else
+            return Message.SUCCESSFUL_DEACTIVATION.message;
+    }
+
+    @Override
+    @Secured("ROLE_ADMIN")
+    public String deleteUserById(Long userId) {
+        if (userId == null || userRepository.userExistsById(userId) == 0)
+            return Message.ERROR_WHEN_TRYING_TO_DELETE_USER.message;
+
+        userRepository.deleteById(userId);
+        userRepository.resetAutoIncrement();
+
+        if (userRepository.userExistsById(userId) > 0)
+            return Message.ERROR_WHEN_TRYING_TO_DELETE_USER.message;
+
+        return Message.SUCCESSFUL_REMOVAL.message;
+    }
+
+    private enum Message {
+        SUCCESSFUL_ACTIVATION("Користувач успішно активований"),
+        SUCCESSFUL_DEACTIVATION("Користувач успішно деактивований"),
+        ERROR_WHEN_CHANGING_ACTIVATION_STATUS("Помилка при спробі змінити статус активації користувача"),
+        SUCCESSFUL_REMOVAL("Користувач видалений"),
+        ERROR_WHEN_TRYING_TO_DELETE_USER("Помилка при спробі видалити користувача");
+        private final String message;
+
+        Message(String message) {
+            this.message = message;
+        }
     }
 
     @Autowired

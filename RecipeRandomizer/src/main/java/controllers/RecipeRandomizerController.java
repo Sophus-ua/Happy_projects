@@ -101,8 +101,10 @@ public class RecipeRandomizerController {
     }
 
     @PostMapping(value = "/delete-recipe")
-    public String deleteRecipe(@RequestParam(name = "recipeID") Long recipeID, Model model) {
-        String result = recipeService.deleteById(recipeID);
+    public String deleteRecipe(@RequestParam(name = "recipeID") Long recipeID, Model model,
+                               HttpServletRequest request) {
+        String username = request.getUserPrincipal().getName();
+        String result = recipeService.deleteByIdAndUsername(recipeID, username);
         model.addAttribute("message", result);
         return "/WEB-INF/views/main.jsp";
     }

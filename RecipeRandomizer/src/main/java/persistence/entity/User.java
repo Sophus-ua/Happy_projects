@@ -41,6 +41,9 @@ public class User {
     @Column(name = "registration_date")
     private LocalDate registrationDate;
 
+    @Column(name = "last_login_date")
+    private LocalDate lastLoginDate;
+
     @ToString.Exclude
     @OneToMany(mappedBy = "user")
     private List<Recipe> recipes;

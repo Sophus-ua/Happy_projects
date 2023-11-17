@@ -1,7 +1,9 @@
 package persistence.entity;
 
+
 import javax.persistence.*;
 import java.io.Serializable;
+
 @Entity
 @Table(name = "recipes_common_allergens", schema = "recipe_randomizer")
 public class RecipesCommonAllergens {

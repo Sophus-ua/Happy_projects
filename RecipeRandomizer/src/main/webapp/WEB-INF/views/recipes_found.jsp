@@ -25,7 +25,7 @@
 			<h3 style="text-align: center;"> Список знайдених Рецептів </h3>
 			<table>
 				<tr>
-					<th style="width: 220px; border: 1px solid gray;"> Назва </th>
+					<th style="width: 270px; border: 1px solid gray;"> Назва </th>
 					<th style="width: 150px; border: 1px solid gray;"> Категорія їжі </th>
 					<th style="width: 170px; border: 1px solid gray;"> Регіональна кухня </th>
 					<th style="width: 70px; border: 1px solid gray;"> Час(хв) </th>

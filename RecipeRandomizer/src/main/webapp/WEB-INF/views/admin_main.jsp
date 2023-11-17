@@ -20,7 +20,7 @@
         }
 
         .header {
-            background-color: #333;
+            background-color: #4B0082; /* Темнофіолетовий колір */
             color: #fff;
             padding: 10px;
             text-align: center;
@@ -42,9 +42,24 @@
             background-color: #a020f0;
             color: #fff;
         }
+
+        .form-button {
+            height: 40px;
+            margin-right: 15px; /* Відступ зправа між кнопками */
+            transition: background-color 0.3s, color 0.3s; /* Анімація для плавного змінення коліру фону і тексту */
+        }
+
+        .form-button:hover {
+            background-color: #a020f0; /* Фіолетовий колір при наведенні */
+            color: #fff; /* Колір тексту при наведенні */
+        }
     </style>
 </head>
 <body>
+
+<div class="header">
+    <h1>Сторінка адміна</h1>
+</div>
 
 <sec:authorize access="isAuthenticated()">
     <div style="text-align: right; margin-right: 20px; margin-top: 10px;">
@@ -54,12 +69,8 @@
     </div>
 </sec:authorize>
 
-<div class="header">
-    <h1>Сторінка адміна</h1>
-</div>
-
 <div class="container">
-
+    <button type="button" onclick="window.location.href='/admin/user-handler'" class="form-button">Управління користувачами</button>
 </div>
 
 </body>

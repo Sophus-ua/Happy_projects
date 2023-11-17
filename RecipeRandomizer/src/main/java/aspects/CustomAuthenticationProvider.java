@@ -38,8 +38,8 @@ public class CustomAuthenticationProvider implements AuthenticationProvider {
 
         UserDetails userDetails = userService.loadUserByUsername(username);
 
-//        if (passwordEncoder.matches(password, userDetails.getPassword())) {
-        if (userDetails.getPassword().equals(password)) {
+//        if (userDetails.isEnabled() && passwordEncoder.matches(password, userDetails.getPassword())) {
+        if (userDetails.isEnabled() && userDetails.getPassword().equals(password)) {
             return new UsernamePasswordAuthenticationToken(userDetails, userDetails.getPassword(), userDetails.getAuthorities());
         } else {
             throw new BadCredentialsException("Введено невірні данні");

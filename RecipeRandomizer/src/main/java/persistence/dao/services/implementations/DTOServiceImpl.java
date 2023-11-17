@@ -1,7 +1,6 @@
 package persistence.dao.services.implementations;
 
 
-
 import lombok.extern.slf4j.Slf4j;
 import models.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,7 +11,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import persistence.dao.repositories.*;
 import persistence.dao.services.interfaces.IDTOService;
+
 import persistence.entity.*;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -27,6 +28,7 @@ public class DTOServiceImpl implements IDTOService {
     private IAllergenRepository allergenRepository;
     private ICustomTagRepository customTagRepository;
     private IRecipeRepository recipeRepository;
+    private IUserRepository userRepository;
 
     @Override
     public List<MealCategoryDTO> findAllMealCategories() {
@@ -119,6 +121,14 @@ public class DTOServiceImpl implements IDTOService {
         return recipeDTO;
     }
 
+    @Override
+    public List<UserDTO> findAllUsers() {
+        Iterable<User> iterable = userRepository.findAllUsers();
+        return StreamSupport
+                .stream(iterable.spliterator(), false)
+                .map(UserDTO::new)
+                .collect(Collectors.toList());
+    }
 
 
     @Autowired
@@ -149,5 +159,10 @@ public class DTOServiceImpl implements IDTOService {
     @Autowired
     public void setRecipeRepository(IRecipeRepository recipeRepository) {
         this.recipeRepository = recipeRepository;
+    }
+
+    @Autowired
+    public void setUserRepository(IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }

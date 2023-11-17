@@ -6,10 +6,17 @@ import org.springframework.lang.Nullable;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
+
+
 @Service
 public interface IUserService extends UserDetailsService{
     String registrationNewUser(UserDTO userDTO) throws LoginAndRegistrationException;
     @Nullable
     Long getUserIdByUsername(String username);
-//    String deleteById(long id);
+
+    void updateLastLoginDateByUsername(String username);
+
+    String changeUserActivityStatus(Long userId);
+
+    String deleteUserById(Long userId);
 }

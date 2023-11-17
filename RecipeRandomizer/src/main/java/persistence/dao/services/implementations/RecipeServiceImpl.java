@@ -9,9 +9,7 @@ import persistence.dao.repositories.IRecipeRepository;
 import persistence.dao.services.interfaces.IRecipeService;
 import persistence.entity.Recipe;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -63,10 +61,11 @@ public class RecipeServiceImpl implements IRecipeService {
 
     @Override
     @NonNull
-    public String deleteById(long id) {
-        recipeRepository.deleteById(id);
+    public String deleteByIdAndUsername(long recipeID, String username){
+        recipeRepository.deleteByIdAndUsername(recipeID, username);
         recipeRepository.resetAutoIncrement();
-        boolean exists = recipeRepository.existsById(id);
+
+        boolean exists = recipeRepository.existsById(recipeID);
         if (!exists)
             return Messages.RECIPE_DELETED.message;
         else

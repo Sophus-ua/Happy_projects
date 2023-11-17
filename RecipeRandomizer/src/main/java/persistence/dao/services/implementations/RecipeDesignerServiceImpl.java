@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import persistence.dao.repositories.*;
 import persistence.dao.services.interfaces.IRecipeDesignerService;
-import persistence.dao.services.interfaces.IUserService;
 import persistence.entity.*;
 
 import java.util.*;

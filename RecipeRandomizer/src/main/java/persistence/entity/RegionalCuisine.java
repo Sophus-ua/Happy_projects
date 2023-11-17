@@ -1,11 +1,13 @@
 package persistence.entity;
 
+
 import lombok.Data;
 import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
+
 @Data
 @Entity
 @Table(name = "regional_cuisines", schema = "recipe_randomizer")

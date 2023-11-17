@@ -20,5 +20,5 @@ public interface IRecipeService {
 
     void updateImageDataById(byte[] imageData, Long recipeId);
 
-    String deleteById(long id);
+    String deleteByIdAndUsername(long id, String username);
 }

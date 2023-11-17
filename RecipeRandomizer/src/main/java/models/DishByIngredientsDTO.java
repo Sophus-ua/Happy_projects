@@ -8,6 +8,7 @@ import persistence.entity.DishByIngredients;
 public class DishByIngredientsDTO {
     private long id;
     private String name;
+    public DishByIngredientsDTO(){}
     public DishByIngredientsDTO(DishByIngredients dishByIngredients) {
         this.id = dishByIngredients.getId();
         this.name = dishByIngredients.getName();
