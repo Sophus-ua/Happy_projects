@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import persistence.dao.repositories.*;
 import persistence.dao.services.interfaces.IRecipeDesignerService;
+import persistence.dao.services.interfaces.IUserService;
 import persistence.entity.*;
 
 import java.util.*;
@@ -27,6 +28,7 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
     private IAllergenRepository allergenRepository;
     private ICustomTagRepository customTagRepository;
     private IRecipeRepository recipeRepository;
+    private IUserRepository userRepository;
 
     @Nullable
     @Override
@@ -56,6 +58,10 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
 
         recipe.setName(recipeDTO.getName());
 
+        Optional<User> optionalU = userRepository.findByUsername(recipeDTO.getUsername());
+        if (optionalU.isPresent())
+            recipe.setUser(optionalU.get());
+
         Optional<MealCategory> optionalM = mealCategoryRepository.findById(recipeDTO.getMealCategoryID());
         if (optionalM.isPresent())
             recipe.setMealCategory(optionalM.get());
@@ -71,7 +77,6 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
         recipe.setPortions(recipeDTO.getPortions());
         recipe.setCalories(recipeDTO.getCalories());
         recipe.setRecipeText(recipeDTO.getRecipeTextLine());
-
 
         if (recipeDTO.getDishesByIngredientsIds() != null && !recipeDTO.getDishesByIngredientsIds().isEmpty()) {
             updateDishesByIngredients(recipe, recipeDTO.getDishesByIngredientsIds());
@@ -190,5 +195,10 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
     @Autowired
     public void setRecipeRepository(IRecipeRepository recipeRepository) {
         this.recipeRepository = recipeRepository;
+    }
+
+    @Autowired
+    public void setUserRepository(IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }

@@ -2,8 +2,11 @@ package persistence.entity;
 
 
 import lombok.Data;
+import lombok.Getter;
+import lombok.ToString;
 
 import javax.persistence.*;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,43 +15,74 @@ import java.util.List;
 @Table(name = "users", schema = "recipe_randomizer")
 public class User {
     public enum Role {
-        ROLE_ADMIN, ROLE_MODERATOR, ROLE_USER
+        ADMIN, MODERATOR, USER
     }
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(nullable = false)
-    private String name;
+    @Column(name = "username", length = 100, nullable = false, unique = true, columnDefinition = "NVARCHAR(100) COLLATE utf8_general_ci")
+    private String username;
 
-    @Column(nullable = false)
-    private Character[] password;
+    @Column(length = 255, nullable = false)
+    private String password;
+
+    @Column(name = "own_name", length = 100, nullable = false)
+    private String ownName;
 
     @Enumerated(EnumType.STRING)
     private Role role;
 
+    @Getter
+    @Column(name = "enabled",nullable = false)
+    private boolean enabled;
+
+    @Column(name = "registration_date")
+    private LocalDate registrationDate;
+
+    @ToString.Exclude
     @OneToMany(mappedBy = "user")
     private List<Recipe> recipes;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user")
+    private List<CustomTag> customTags;
+
+    @ToString.Exclude
+    @OneToMany(mappedBy = "user")
+    private List<ImageBuffer> imageBuffers;
 
     public User() {
         recipes = new ArrayList<>();
     }
 
-    public User(String name, Character[] password, Role role) {
-        this.name = name;
+    public User(String username, String password, String ownName) {
+        this.username = username;
         this.password = password;
-        this.role = role;
+        this.ownName = ownName;
+        this.role = Role.USER;
+        this.enabled = true;
+        registrationDate = LocalDate.now();
         recipes = new ArrayList<>();
+        customTags = new ArrayList<>();
+        imageBuffers = new ArrayList<>();
     }
 
     @Override
     public String toString() {
-        return String.format("ID of user: %1s, name \"%2s\", role: %3s", id, name, role);
+        return String.format("User name: \"%1s\", role: %2s", ownName, role);
     }
 
-    public void addToRecipes(Recipe recipe) {
+    public void addRecipe(Recipe recipe) {
         recipes.add(recipe);
     }
 
+    public void addCustomTag(CustomTag customTag) {
+        customTags.add(customTag);
+    }
+
+    public void addImageBuffer(ImageBuffer imageBuffer) {
+        imageBuffers.add(imageBuffer);
+    }
 }

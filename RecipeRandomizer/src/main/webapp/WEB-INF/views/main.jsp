@@ -77,9 +77,21 @@
             color: #fff; /* Колір тексту при наведенні */
         }
 
+        /* Стилі для кнопок */
+        .button-container {
+            display: flex;
+        }
+
         .form-button {
             height: 40px;
+            margin-right: 15px; /* Відступ зправа між кнопками */
             transition: background-color 0.3s, color 0.3s; /* Анімація для плавного змінення коліру фону і тексту */
+        }
+
+        .form-button:last-child {
+            margin-right: 20px;
+            position: absolute;
+            right: 0;
         }
 
         .form-button:hover {
@@ -93,13 +105,18 @@
 
 <body>
 
-    <button type="button" onclick="window.location.href='/recipe-handler'" class="form-button">Додати новий рецепт</button>
-    <button type="button" onclick="window.location.href='/tag-handler'" class="form-button">Управління ТЕГами</button>
-    <button type="button" onclick="window.location.href='/test'" class="form-button">ТЕСТ</button>
+    <div class="button-container">
+        <button type="button" onclick="window.location.href='/recipe-handler'" class="form-button">Додати новий рецепт</button>
+        <button type="button" onclick="window.location.href='/tag-handler'" class="form-button">Управління ТЕГами</button>
+        <button type="button" onclick="window.location.href='/test'" class="form-button">ТЕСТ</button>
+        <form action="/user/logout" method="post">
+            <input type="submit" value="Logout" class="form-button"/>
+        </form>
+    </div>
 
     <div style="text-align: center;">
         <c:if test="${not empty message}">
-            <p style="font-weight: bold; font-size: 20px;">${message}</p>
+            <p style="font-weight: bold; font-size: 30px; color: #008000;">${message}</p>
         </c:if>
     </div>
 

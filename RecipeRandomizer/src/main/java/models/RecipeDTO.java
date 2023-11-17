@@ -10,6 +10,7 @@ import java.util.List;
 public class RecipeDTO {
     private Long id;
     private String name;
+    private String username;
     private String mealCategoryName;
     private Long mealCategoryID;
     private String regionalCuisineName;
@@ -39,6 +40,7 @@ public class RecipeDTO {
     public RecipeDTO (Recipe recipe){
         this.id = recipe.getId();
         this.name = recipe.getName();
+        this.username = recipe.getUser().getUsername();
         this.mealCategoryName = recipe.getMealCategory().getName();
         this.mealCategoryID = recipe.getMealCategory().getId();
         this.regionalCuisineName = recipe.getRegionalCuisine() != null ? recipe.getRegionalCuisine().getName() : "";

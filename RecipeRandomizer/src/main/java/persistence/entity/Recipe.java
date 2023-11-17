@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -15,12 +16,12 @@ public class Recipe {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @Column(nullable = false)
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @ManyToOne
     @JoinColumn(name = "meal_category_id", nullable = false)
@@ -49,7 +50,7 @@ public class Recipe {
     @Column(name = "recipe_text", columnDefinition = "nvarchar(3000)", nullable = false)
     private String recipeText;
 
-
+    @ToString.Exclude
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,
@@ -60,7 +61,7 @@ public class Recipe {
             inverseJoinColumns = @JoinColumn(name = "dish_by_ingredients_id"))
     private List<DishByIngredients> dishesByIngredients;
 
-
+    @ToString.Exclude
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,
@@ -71,7 +72,7 @@ public class Recipe {
             inverseJoinColumns = @JoinColumn(name = "allergen_id"))
     private List<Allergen> allergens;
 
-
+    @ToString.Exclude
     @ManyToMany(fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,

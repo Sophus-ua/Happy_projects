@@ -26,8 +26,8 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @Override
     @NonNull
-    public List<Recipe> findRecipesBySearchModel(SearchModel searchModel) {
-        Set<Integer> recipesIds = findRecipesIdsBySearchModel(searchModel);
+    public List<Recipe> findRecipesForUserBySearchModel(SearchModel searchModel, String username) {
+        Set<Integer> recipesIds = findRecipesIdsForUserBySearchModel(searchModel, username);
         Set<Long> longIds = recipesIds.stream()
                 .map(Integer::longValue)
                 .collect(Collectors.toSet());
@@ -40,8 +40,8 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @Override
     @NonNull
-    public String findAndRandomizeRecipeIdsJSON(SearchModel searchModel) {
-        Set<Integer> recipesIds = findRecipesIdsBySearchModel(searchModel);
+    public String findAndRandomizeRecipeIdsForUserJSON(SearchModel searchModel, String username) {
+        Set<Integer> recipesIds = findRecipesIdsForUserBySearchModel(searchModel, username);
         List<Integer> idsList = new ArrayList<>(recipesIds);
         Collections.shuffle(idsList);
         try {
@@ -55,102 +55,8 @@ public class SearchFormServiceImpl implements ISearchFormService {
         }
     }
 
-
-//    @NonNull
-//    private Set<Integer> findRecipesIdsBySearchModel(SearchModel searchModel) {
-//
-//        Set<Integer> recipesIds = new HashSet<>();
-//        List<Long> variableList = new ArrayList<>();
-//
-//        /*1*/
-//        variableList.add(searchModel.getIncludeMealCategoryID());
-//        if (variableList.get(0) != 0) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_MEAL_CATEGORY, recipesIds, variableList, true);
-//
-//            System.out.print("\nrecipesIds in 1: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*2*/
-//        variableList.clear();
-//        variableList.add(searchModel.getIncludeRegionalCuisineID());
-//        if (variableList.get(0) != 0) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_REGIONAL_CUISINE, recipesIds, variableList, true);
-//
-//            System.out.print("\nrecipesIds in 2: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*3*/
-//        variableList = searchModel.getIncludeDishesByIngredientsIds();
-//        if (!variableList.isEmpty() && variableList.get(0) != 0 || variableList.size() > 1) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_DISHES_INGREDIENTS, recipesIds, variableList, true);
-//
-//            System.out.print("\nrecipesIds in 3: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*4*/
-//        variableList = searchModel.getIncludeCustomTagsIds();
-//        if (!variableList.isEmpty() && variableList.get(0) != 0 || variableList.size() > 1) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_TAGS, recipesIds, variableList, true);
-//
-//            System.out.print("\nrecipesIds in 4: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*5*/
-//        variableList.clear();
-//        variableList.add(searchModel.getMaxCookingTime());
-//        recipesIds = filterRecipeIds(FilteringParameter.BY_COOKING_TIME, recipesIds, variableList, true);
-//        System.out.print("\nrecipesIds in 5: ");
-//        recipesIds.forEach(System.out::print);
-//        if (recipesIds.isEmpty()) return recipesIds;
-//        /*6*/
-//        variableList = searchModel.getExcludeDishesByIngredientsIds();
-//        if (!variableList.isEmpty() && variableList.get(0) != 0 || variableList.size() > 1) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_DISHES_INGREDIENTS, recipesIds, variableList, false);
-//
-//            System.out.print("\nrecipesIds in 6: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*7*/
-//        variableList = searchModel.getExcludeFoodWithAllergensIds();
-//        if (!variableList.isEmpty() && variableList.get(0) != 0 || variableList.size() > 1) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_ALLERGENS, recipesIds, variableList, false);
-//
-//            System.out.print("\nrecipesIds in 7: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//        /*8*/
-//        variableList = searchModel.getExcludeCustomTagsIds();
-//        if (!variableList.isEmpty() && variableList.get(0) != 0 || variableList.size() > 1) {
-//            recipesIds = filterRecipeIds(FilteringParameter.BY_TAGS, recipesIds, variableList, false);
-//
-//            System.out.print("\nrecipesIds in 8: ");
-//            recipesIds.forEach(System.out::print);
-//
-//            if (recipesIds.isEmpty()) return recipesIds;
-//        }
-//
-//        System.out.println("\n");
-//        return recipesIds;
-//    }
-
-
-
-
-
     @NonNull
-    private Set<Integer> findRecipesIdsBySearchModel(SearchModel searchModel) {
+    private Set<Integer> findRecipesIdsForUserBySearchModel(SearchModel searchModel, String username) {
         Set<Integer> recipesIds = new HashSet<>();
         List<Long> variableList = new ArrayList<>();
         Object[][] filteringParameters = getArrayOfFilteringParameters();
@@ -158,30 +64,38 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
         try {
             variableList.add(searchModel.getIncludeMealCategoryID());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList.clear();
             variableList.add(searchModel.getIncludeRegionalCuisineID());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList = searchModel.getIncludeDishesByIngredientsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList = searchModel.getIncludeCustomTagsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList.clear();
             variableList.add(searchModel.getMaxCookingTime());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList = searchModel.getExcludeDishesByIngredientsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList = searchModel.getExcludeFoodWithAllergensIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder++);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder++, username);
 
             variableList = searchModel.getExcludeCustomTagsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters, filteringOrder);
+            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                    filteringOrder, username);
 
         } catch (EmptyRecipeIds e) {
             return new HashSet<>();
@@ -192,13 +106,14 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @NonNull
     private Set<Integer> checkingThenFilteringRecipeIds(Set<Integer> recipesIds, List<Long> variableList,
-                                                        Object[][] filteringParameters, int filteringOrder) throws EmptyRecipeIds {
+                                                        Object[][] filteringParameters, int filteringOrder,
+                                                        String username) throws EmptyRecipeIds {
 
         if (variableList.isEmpty() || variableList.get(0) == 0 && variableList.size() == 1)
             return recipesIds;
 
         recipesIds = filterRecipeIds((FilteringParameter)filteringParameters[0][filteringOrder], recipesIds,
-                variableList, (Boolean) filteringParameters[1][filteringOrder]);
+                variableList, (Boolean) filteringParameters[1][filteringOrder], username);
 
         System.out.print("\nSearchFormServiceImpl recipesIds in bloc " + (filteringOrder+1) + " : ");
         recipesIds.forEach(System.out::print);
@@ -209,27 +124,28 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @NonNull
     private Set<Integer> filterRecipeIds(FilteringParameter parameter,
-                                         Set<Integer> recipesIds, List<Long> listIds, boolean isInclude) {
+                                         Set<Integer> recipesIds, List<Long> listIds,
+                                         boolean isInclude, String username) {
 
         Iterable<Integer> iterable = null;
         switch (parameter) {
             case BY_MEAL_CATEGORY:
-                iterable = recipeRepository.findIdsByMealCategory_Id(listIds.get(0));
+                iterable = recipeRepository.findIdsForUserByMealCategoryId(listIds.get(0), username);
                 break;
             case BY_REGIONAL_CUISINE:
-                iterable = recipeRepository.findIdsByRegionalCuisine_Id(listIds.get(0));
+                iterable = recipeRepository.findIdsForUserByRegionalCuisineId(listIds.get(0), username);
                 break;
             case BY_COOKING_TIME:
-                iterable = recipeRepository.findIdsByCookingTimeLessThan(listIds.get(0));
+                iterable = recipeRepository.findIdsForUserByCookingTimeLessThan(listIds.get(0), username);
                 break;
             case BY_DISHES_INGREDIENTS:
-                iterable = recipeRepository.findRecipeIdsByDishesByIngredientsIds(listIds);
+                iterable = recipeRepository.findRecipeIdsForUserByDishesByIngredientsIds(listIds, username);
                 break;
             case BY_ALLERGENS:
-                iterable = recipeRepository.findRecipeIdsByAllergensIds(listIds);
+                iterable = recipeRepository.findRecipeIdsForUserByAllergensIds(listIds, username);
                 break;
             case BY_TAGS:
-                iterable = recipeRepository.findRecipeIdsByTagsIds(listIds);
+                iterable = recipeRepository.findRecipeIdsForUserByTagsIds(listIds, username);
                 break;
         }
         Set<Integer> filteredRecipesIds = StreamSupport

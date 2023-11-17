@@ -6,6 +6,9 @@ import lombok.extern.slf4j.Slf4j;
 import models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.Nullable;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import persistence.dao.repositories.*;
 import persistence.dao.services.interfaces.IDTOService;
@@ -62,14 +65,15 @@ public class DTOServiceImpl implements IDTOService {
     }
 
     @Override
-    public List<CustomTagDTO> findAllCustomTags() {
-        Iterable<CustomTag> iterable = customTagRepository.findAll();
+    public List<CustomTagDTO> findAllCustomTagsForUser(String username) {
+        Iterable<CustomTag> iterable = customTagRepository.findAllForUser(username);
         return StreamSupport
                 .stream(iterable.spliterator(), false)
                 .map(CustomTagDTO::new)
                 .collect(Collectors.toList());
     }
 
+    @PostAuthorize("returnObject.username == authentication.name")
     @Nullable
     @Override
     public RecipeDTO findRecipeDTO(long id) {
@@ -108,7 +112,10 @@ public class DTOServiceImpl implements IDTOService {
                 .collect(Collectors.toList());
         recipeDTO.setCustomTagsIds(longListIds);
 
-        System.out.println("recipeDTO in DTOServiceImpl.findRecipeDTO:" + recipeDTO);
+
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        System.out.println("DTOServiceImpl.findRecipeDTO authentication.getName(): " + authentication.getName());
+        System.out.println("DTOServiceImpl.findRecipeDTO recipeDTO: " + recipeDTO);
         return recipeDTO;
     }
 

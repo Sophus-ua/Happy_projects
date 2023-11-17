@@ -8,5 +8,5 @@ import persistence.entity.ImageBuffer;
 
 @Repository
 @Transactional
-public interface IImageBufferRepository extends CrudRepository<ImageBuffer, String> {
+public interface IImageBufferRepository extends CrudRepository<ImageBuffer, ImageBuffer.ImageBufferId> {
 }

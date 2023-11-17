@@ -20,27 +20,28 @@ create table regional_cuisines
 (
     id int not null AUTO_INCREMENT,
     name nVARCHAR(30) not null,
-    constraint pk_id primary key (id)
+      constraint pk_id primary key (id)
 );
 |
 
 create table users
 (
-id int not null auto_increment,
-name nvarchar(100) not null,
-password nvarchar(100) not null,
-role ENUM('ROLE_ADMIN', 'ROLE_MODERATOR', 'ROLE_USER'),
-constraint pk_id primary key (id)
+    id int not null AUTO_INCREMENT,
+    username nvarchar(100) not null unique COLLATE utf8_general_ci,
+    password nvarchar(255) not null,
+    own_name nvarchar(100) not null,
+    role ENUM('ADMIN', 'MODERATOR', 'USER') not null,
+    enabled TINYINT(1) not null DEFAULT 1,
+    registration_date DATE,
+      constraint pk_id primary key (id)
 );
-|
-create index user_name on users(name);
 |
 
 create table recipes
 (
     id INT not null AUTO_INCREMENT,
-    user_id int,
     name nVARCHAR(100) not null,
+    user_id int not null,
     meal_category_id int not null,
     regional_cuisine_id int,
     cooking_time int,
@@ -48,15 +49,16 @@ create table recipes
     calories int,
     image_data mediumblob,
     recipe_text nvarchar(3000) not null,
-    constraint pk_id primary key (id),
-    constraint fk_user_id foreign key (user_id) references users(id)
-    on delete cascade on update cascade,
-    constraint fk_meal_category_id foreign key (meal_category_id) references meal_categories(id)
-    on delete cascade on update cascade,
-    constraint fk_regional_cuisine_id foreign key (regional_cuisine_id) references regional_cuisines(id)
-    on delete set null on update cascade
+      constraint pk_id primary key (id),
+      constraint fk_user_id foreign key (user_id) references users(id)
+      on delete cascade on update cascade,
+      constraint fk_meal_category_id foreign key (meal_category_id) references meal_categories(id)
+      on delete cascade on update cascade,
+      constraint fk_regional_cuisine_id foreign key (regional_cuisine_id) references regional_cuisines(id)
+      on delete set null on update cascade
 );
 |
+
 create index recipe_name on recipes(name);
 create index meal_category_in_recipes on recipes(meal_category_id);
 create index regional_cuisine_in_recipes on recipes(regional_cuisine_id);
@@ -68,7 +70,7 @@ create table dishes_by_ingredients
 (
     id INT not null AUTO_INCREMENT,
     name nVARCHAR(50) not null,
-    constraint pk_id primary key (id)
+      constraint pk_id primary key (id)
 );
 |
 
@@ -76,7 +78,7 @@ create table common_allergens
 (
     id INT not null AUTO_INCREMENT,
     name nVARCHAR(50) not null,
-    constraint pk_id primary key (id)
+      constraint pk_id primary key (id)
 );
 |
 
@@ -84,53 +86,61 @@ create table custom_tags
 (
     id INT not null AUTO_INCREMENT,
     name nVARCHAR(50) not null,
-    constraint pk_id primary key (id)
-);
-|
-
-create table recipes_dishes_by_ingredients
-(
-recipe_id int not null,
-dish_by_ingredients_id int not null,
-constraint pk_embedded_id primary key (recipe_id, dish_by_ingredients_id),
-constraint fk_recipe_in_ingredients foreign key (recipe_id) references recipes(id)
-on delete cascade on update cascade,
-constraint fk_dish_by_ingredients foreign key (dish_by_ingredients_id) references dishes_by_ingredients(id)
-on delete cascade on update cascade
-);
-
-
-create table recipes_common_allergens
-(
-recipe_id int not null,
-allergen_id int not null,
-constraint pk_embedded_id primary key (recipe_id, allergen_id),
-constraint fk_recipe_in_allergens foreign key (recipe_id) references recipes(id)
-on delete cascade on update cascade,
-constraint fk_allergen foreign key (allergen_id) references common_allergens(id)
-on delete cascade on update cascade
-);
-
-
-create table recipes_custom_tags
-(
-recipe_id int not null,
-custom_tag_id int not null,
-constraint pk_embedded_id primary key (recipe_id, custom_tag_id),
-constraint fk_recipe_in_custom_tags foreign key (recipe_id) references recipes(id)
-on delete cascade on update cascade,
-constraint fk_custom_tag foreign key (custom_tag_id) references custom_tags(id)
-on delete cascade on update cascade
+    user_id int not null,
+      constraint pk_id primary key (id),
+      constraint fk_user_id_in_custom_tags foreign key (user_id) references users(id)
+      on delete cascade on update cascade
 );
 |
 
 create table image_buffer
 (
-image_key nVARCHAR(100) not null unique,
-image_data mediumblob not null,
-constraint pk_image_key primary key (image_key)
+    image_key nVARCHAR(100) not null,
+    user_id int not null,
+    image_data mediumblob not null,
+      constraint pk_embedded_id primary key (image_key, user_id),
+      constraint fk_user_id_in_image_buffer foreign key (user_id) references users(id)
+      on delete cascade on update cascade
 );
 |
+
+create table recipes_dishes_by_ingredients
+(
+    recipe_id int not null,
+    dish_by_ingredients_id int not null,
+      constraint pk_embedded_id primary key (recipe_id, dish_by_ingredients_id),
+      constraint fk_recipe_in_ingredients foreign key (recipe_id) references recipes(id)
+      on delete cascade on update cascade,
+      constraint fk_dish_by_ingredients foreign key (dish_by_ingredients_id) references dishes_by_ingredients(id)
+      on delete cascade on update cascade
+);
+
+
+create table recipes_common_allergens
+(
+    recipe_id int not null,
+    allergen_id int not null,
+      constraint pk_embedded_id primary key (recipe_id, allergen_id),
+      constraint fk_recipe_in_allergens foreign key (recipe_id) references recipes(id)
+      on delete cascade on update cascade,
+      constraint fk_allergen foreign key (allergen_id) references common_allergens(id)
+      on delete cascade on update cascade
+);
+
+
+create table recipes_custom_tags
+(
+    recipe_id int not null,
+    custom_tag_id int not null,
+      constraint pk_embedded_id primary key (recipe_id, custom_tag_id),
+      constraint fk_recipe_in_custom_tags foreign key (recipe_id) references recipes(id)
+      on delete cascade on update cascade,
+      constraint fk_custom_tag foreign key (custom_tag_id) references custom_tags(id)
+      on delete cascade on update cascade
+);
+|
+
+
 
 
 
@@ -194,28 +204,24 @@ values
 ('гірчиця'),
 ('cоя'),
 ('сульфіти');
-
-
-insert into custom_tags
-(name)
-values
-('швидкий перекус'),
-('святкові'),
-('в дорогу'),
-('на пікнік');
 |
 
 
-
-
-
 insert into users
-(name, password, role)
+(username, password, own_name, role, enabled, registration_date)
 values
-('Олег','123', 'ROLE_ADMIN'),
-('Moderator','456', 'ROLE_MODERATOR'),
-('Аня','789', 'ROLE_USER');
+('Admin', 'qwe', 'Олег', 'ADMIN', 1 ,'2023-11-12'),
+('Moderator', 'qwe', 'Олег', 'MODERATOR', 1 , '2023-11-12'),
+('Anna', '123', 'Аня', 'USER', 1 , '2023-11-12'),
+('Oleh', '456', 'Олег', 'USER', 1 , '2023-11-14');
 
+insert into custom_tags
+(name, user_id)
+values
+('швидкий перекус', 3),
+('святкові', 3),
+('в дорогу', 3),
+('на пікнік', 3);
 
 insert into recipes
 (name, user_id, meal_category_id, regional_cuisine_id, cooking_time, portions, calories, image_data, recipe_text)
@@ -223,12 +229,11 @@ values
 ('Яйця', 3, 1, 5, 30, 1, 100, null, 'варимо'),
 ('Риба', 3, 2 , 4, 60, 2, 150, null, 'варимо '),
 ('М`ясо', 3, 3 , 3, 120, 3, 200, null, 'варимо '),
-('Суп', 3, 4 , 2, 20, 1, 300, null, 'варимо '),
+('Суп', 3, 4, 2, 20, 1, 300, null, 'варимо '),
 ('Ковбаса', 3, 5 , 1, 15, 21, 250, null, 'варимо '),
 ('Картопля', 3, 6 , 5, 50, 3, 1170, null, 'варимо '),
 ('Кампот', 3, 1 , 4, 110, 1, 520, null, 'варимо '),
 ('Шашлики', 3, 7 , 4, 110, 1, 520, null, 'варимо ');
-
 
 insert into recipes_dishes_by_ingredients
 (recipe_id, dish_by_ingredients_id)
@@ -322,3 +327,6 @@ ALTER TABLE common_allergens AUTO_INCREMENT=1;
 
 delete from custom_tags;
 ALTER TABLE custom_tags AUTO_INCREMENT=1;
+
+delete from users;
+ALTER TABLE users AUTO_INCREMENT=1;

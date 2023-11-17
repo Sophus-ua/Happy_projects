@@ -54,8 +54,8 @@ public class RecipeServiceImpl implements IRecipeService {
     }
 
     @Override
-    public List<Recipe> findRecipesByNameLike(String nameLike) {
-        Iterable<Recipe> iterable = recipeRepository.findByNameLike("%" + nameLike + "%");
+    public List<Recipe> findRecipesByNameLikeForUser(String nameLike, String username) {
+        Iterable<Recipe> iterable = recipeRepository.findByNameLikeForUser("%" + nameLike + "%", username);
         return StreamSupport
                 .stream(iterable.spliterator(), false)
                 .collect(Collectors.toList());

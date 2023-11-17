@@ -8,6 +8,7 @@ import persistence.entity.CustomTag;
 public class CustomTagDTO {
     private long id;
     private String name;
+    private String username;
 
     public CustomTagDTO(){}
     public CustomTagDTO(CustomTag customTag) {

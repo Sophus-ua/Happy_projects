@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ public class Allergen {
     @Column(nullable = false)
     private String name;
 
-
+    @ToString.Exclude
     @ManyToMany(mappedBy = "allergens", fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,

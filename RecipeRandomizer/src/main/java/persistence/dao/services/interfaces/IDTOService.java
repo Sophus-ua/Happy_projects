@@ -11,7 +11,8 @@ public interface IDTOService {
     List<RegionalCuisineDTO> findAllRegionalCuisines();
     List<DishByIngredientsDTO> findAllDishesByIngredients();
     List<AllergenDTO> findAllAllergens();
-    List<CustomTagDTO> findAllCustomTags();
+//    List<CustomTagDTO> findAllCustomTags();
+    List<CustomTagDTO> findAllCustomTagsForUser(String username);
     RecipeDTO findRecipeDTO(long id);
 
 

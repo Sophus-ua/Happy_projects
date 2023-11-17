@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class MealCategory {
     @Column(nullable = false)
     private String name;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "mealCategory")
     private List<Recipe> recipes;
 
@@ -28,13 +30,11 @@ public class MealCategory {
         recipes = new ArrayList<>();
     }
 
+    public void addToRecipes(Recipe recipe){
+        recipes.add(recipe);
+    }
     @Override
     public String toString() {
         return String.format("ID категорії прийому їжі: %1s, назва \"%2s\";", id, name);
     }
-
-    public void addToRecipes(Recipe recipe){
-        recipes.add(recipe);
-    }
-
 }

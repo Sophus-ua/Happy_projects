@@ -22,9 +22,12 @@
 
 
     <context:component-scan base-package="controllers"/>
+    <context:component-scan base-package="aspects"/>
+
     <context:annotation-config/>
     <mvc:annotation-driven/>
 
     <import resource="app-context.xml"/>
+    <import resource="security.xml"/>
 
 </beans>

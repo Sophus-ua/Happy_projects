@@ -1,27 +1,28 @@
 package controllers;
 
+import jakarta.servlet.http.HttpServletRequest;
 import models.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import persistence.dao.services.interfaces.IDTOService;
 import persistence.dao.services.interfaces.IRecipeImageCacheService;
 import persistence.dao.services.interfaces.IRecipeService;
 import org.springframework.http.HttpHeaders;
-
-
 import java.util.List;
 
 @RestController
+@PreAuthorize("isAuthenticated")
 @RequestMapping("/data")
 public class RecipeDataRestController {
 
     private IDTOService dtoService;
     private IRecipeService recipeService;
-
     private IRecipeImageCacheService recipeImageCacheService;
+
 
     @GetMapping(value = "/all-meal-categories", produces = "application/json")
     public ResponseEntity<List<MealCategoryDTO>> getAllMealCategorises() {
@@ -64,9 +65,10 @@ public class RecipeDataRestController {
     }
 
     @GetMapping(value = "/all-custom-tags", produces = "application/json")
-    public ResponseEntity<List<CustomTagDTO>> getAllCustomTags() {
+    public ResponseEntity<List<CustomTagDTO>> getAllCustomTags(HttpServletRequest request) {
         try {
-            List<CustomTagDTO> customTags = dtoService.findAllCustomTags();
+            String username = request.getUserPrincipal().getName();
+            List<CustomTagDTO> customTags = dtoService.findAllCustomTagsForUser(username);
             return new ResponseEntity<>(customTags, HttpStatus.OK);
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -98,7 +100,8 @@ public class RecipeDataRestController {
 
 
     @PostMapping(value = "/imageUpload")
-    public ResponseEntity<String> imageUpload(@RequestBody ImageDTO imageDTO) {
+    public ResponseEntity<String> imageUpload(@RequestBody ImageBufferDTO imageDTO,
+                                              HttpServletRequest request) {
         try {
 //            byte[] imageByte = recipeImageCacheService.saveImageToCacheWithEvictionDelay(imageDTO);
 //            if (imageByte == null || imageByte.length ==0){
@@ -107,11 +110,14 @@ public class RecipeDataRestController {
 //                System.out.println("RecipeDataRestController.imageUpload imageByte is good. CashKey: " + imageDTO.getImageKey());
 //                imageByte = null;
 //            }
+            imageDTO.setUsername(request.getUserPrincipal().getName());
+
+            System.out.println("RecipeDataRestController.imageUpload imageDTO.getImageKey(): " + imageDTO.getImageKey());
+            System.out.println("RecipeDataRestController.imageUpload imageDTO.getUserId(): " + imageDTO.getUsername());
 
             recipeImageCacheService.saveImageToBufferWithEvictionDelay(imageDTO);
             return new ResponseEntity<>(HttpStatus.OK);
-        } catch (
-                Exception e) {
+        } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -131,5 +137,4 @@ public class RecipeDataRestController {
     public void setRecipeImageCacheService(IRecipeImageCacheService recipeImageCacheService) {
         this.recipeImageCacheService = recipeImageCacheService;
     }
-
 }

@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -17,8 +18,11 @@ public class CustomTag {
     @Column(nullable = false)
     private String name;
 
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
-
+    @ToString.Exclude
     @ManyToMany(mappedBy = "customTags", fetch = FetchType.LAZY,
             cascade = {
                     CascadeType.PERSIST,
@@ -30,16 +34,17 @@ public class CustomTag {
         recipes = new ArrayList<>();
     }
 
-    public CustomTag(String name) {
+    public CustomTag(String name, User user) {
         this.name = name;
+        this.user = user;
         recipes = new ArrayList<>();
     }
 
-    public void addRecipe (Recipe recipe) {
+    public void addRecipe(Recipe recipe) {
         recipe.addCustomTag(this);
     }
 
-    public void removeRecipeById (long recipeId) {
+    public void removeRecipeById(long recipeId) {
         this.recipes.stream()
                 .filter(recipe -> recipe.getId() == recipeId)
                 .findFirst()

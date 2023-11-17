@@ -5,24 +5,36 @@ import models.CustomTagDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import persistence.dao.repositories.ICustomTagRepository;
+import persistence.dao.repositories.IUserRepository;
 import persistence.dao.services.interfaces.ICustomTagsService;
 import persistence.entity.CustomTag;
+import persistence.entity.User;
+
+import java.util.Optional;
 
 
 @Slf4j
 @Service
 public class CustomTagsServiceImpl implements ICustomTagsService {
     private ICustomTagRepository customTagRepository;
+    private IUserRepository userRepository;
 
     @Override
     public String addCustomTag(CustomTagDTO customTagDTO) {
-        if (customTagDTO == null || customTagDTO.getName() == null || customTagDTO.getName().isEmpty())
+        if (customTagDTO == null || customTagDTO.getName() == null || customTagDTO.getName().isEmpty() ||
+                customTagDTO.getUsername() == null || customTagDTO.getUsername().isEmpty())
             return ResultOfAction.ADD_FAILED.message;
 
         CustomTag customTag = new CustomTag();
         customTag.setName(customTagDTO.getName());
-        customTagRepository.save(customTag);
 
+        Optional<User> optional = userRepository.findByUsername(customTagDTO.getUsername());
+        if (!optional.isPresent())
+            return ResultOfAction.ADD_FAILED.message;
+
+        customTag.setUser(optional.get());
+
+        customTagRepository.save(customTag);
         return ResultOfAction.ADD_SUCCESSFUL.message;
     }
 
@@ -57,5 +69,9 @@ public class CustomTagsServiceImpl implements ICustomTagsService {
     @Autowired
     public void setCustomTagRepository(ICustomTagRepository customTagRepository) {
         this.customTagRepository = customTagRepository;
+    }
+    @Autowired
+    public void setUserRepository(IUserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 }

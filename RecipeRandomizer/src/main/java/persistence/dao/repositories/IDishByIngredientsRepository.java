@@ -1,7 +1,7 @@
 package persistence.dao.repositories;
 
 
-import org.springframework.data.jpa.repository.Modifying;
+
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
@@ -23,7 +23,5 @@ public interface IDishByIngredientsRepository extends CrudRepository<DishByIngre
             "where recipe_id = ?1", nativeQuery = true)
     List<Integer> findIdsByRecipeId (long recipeId);
 
-    @Modifying
-    @Query(value = "ALTER TABLE dishes_by_ingredients AUTO_INCREMENT = 1", nativeQuery = true)
-    void resetAutoIncrement();
+
 }

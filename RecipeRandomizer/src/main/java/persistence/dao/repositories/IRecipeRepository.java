@@ -1,12 +1,11 @@
 package persistence.dao.repositories;
 
 
-import org.springframework.data.jpa.repository.EntityGraph;
+
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 import persistence.entity.Recipe;
@@ -39,33 +38,49 @@ public interface IRecipeRepository extends CrudRepository<Recipe, Long> {
 
     @Query(value = "select id from recipes", nativeQuery = true)
     Iterable<Integer> findAllRecipesIds();
-
-    Iterable<Recipe> findByNameLike(String nameLike);
-
-    @Query(value = "select r.id from recipes r where r.meal_category_id = ?1", nativeQuery = true)
-    Iterable<Integer> findIdsByMealCategory_Id(long mealCategoryId);
-
-    @Query(value = "select r.id from recipes r where r.regional_cuisine_id = ?1", nativeQuery = true)
-    Iterable<Integer> findIdsByRegionalCuisine_Id(long regionalCuisineId);
-
-    @Query(value = "select id from recipes where cooking_time <= ?1 \n" +
-            "or cooking_time is null", nativeQuery = true)
-    Iterable<Integer> findIdsByCookingTimeLessThan(long cookingTime);
+    @Query(value = "select * from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.name like ?1 and u.username = ?2", nativeQuery = true)
+    Iterable<Recipe> findByNameLikeForUser(String nameLike, String username);
 
     @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.meal_category_id = ?1 and u.username = ?2", nativeQuery = true)
+    Iterable<Integer> findIdsForUserByMealCategoryId(long mealCategoryId, String username);
+
+    @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.regional_cuisine_id = ?1 and u.username = ?2", nativeQuery = true)
+    Iterable<Integer> findIdsForUserByRegionalCuisineId(long regionalCuisineId, String username);
+
+    @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where (cooking_time <= ?1 or cooking_time is null) and u.username = ?2", nativeQuery = true)
+    Iterable<Integer> findIdsForUserByCookingTimeLessThan(long cookingTime, String username);
+
+
+    @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
             "join recipes_dishes_by_ingredients di on di.recipe_id = r.id\n" +
-            "where di.dish_by_ingredients_id in :dishesByIngredientsIds", nativeQuery = true)
-    Iterable<Integer> findRecipeIdsByDishesByIngredientsIds(@Param("dishesByIngredientsIds") List<Long> dishesByIngredientsIds);
+            "where di.dish_by_ingredients_id in :dishesByIngredientsIds and u.username = :username", nativeQuery = true)
+    Iterable<Integer> findRecipeIdsForUserByDishesByIngredientsIds(
+            @Param("dishesByIngredientsIds") List<Long> dishesByIngredientsIds, @Param("username") String username);
+
 
     @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
             "join recipes_common_allergens a on a.recipe_id = r.id\n" +
-            "where a.allergen_id in :allergensIds", nativeQuery = true)
-    Iterable<Integer> findRecipeIdsByAllergensIds(@Param("allergensIds") List<Long> allergensIds);
+            "where a.allergen_id in :allergensIds and u.username = :username", nativeQuery = true)
+    Iterable<Integer> findRecipeIdsForUserByAllergensIds(
+            @Param("allergensIds") List<Long> allergensIds, @Param("username") String username);
+
 
     @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
             "join recipes_custom_tags t on t.recipe_id = r.id\n" +
-            "where t.custom_tag_id in :tagsIds", nativeQuery = true)
-    Iterable<Integer> findRecipeIdsByTagsIds(@Param("tagsIds") List<Long> tagsIds);
+            "where t.custom_tag_id in :tagsIds and u.username = :username", nativeQuery = true)
+    Iterable<Integer> findRecipeIdsForUserByTagsIds(
+            @Param("tagsIds") List<Long> tagsIds, @Param("username") String username);
 
     @Modifying
     @Query(value = "ALTER TABLE recipes AUTO_INCREMENT = 1", nativeQuery = true)

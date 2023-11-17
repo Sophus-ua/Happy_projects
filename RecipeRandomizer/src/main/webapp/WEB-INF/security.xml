@@ -2,20 +2,76 @@
 <beans:beans xmlns:beans="http://www.springframework.org/schema/beans"
              xmlns="http://www.springframework.org/schema/security"
              xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+             xmlns:sec="http://www.springframework.org/schema/security"
              xsi:schemaLocation="http://www.springframework.org/schema/beans
                  http://www.springframework.org/schema/beans/spring-beans.xsd
                  http://www.springframework.org/schema/security
                  http://www.springframework.org/schema/security/spring-security.xsd">
 
+    <!-- HTTP Security Configuration -->
     <http>
-        <intercept-url pattern="/*" access="hasRole"
+        <intercept-url pattern="/" access="permitAll()"/>
+        <intercept-url pattern="/user/**" access="permitAll()"/>
+        <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
+        <intercept-url pattern="/moderator/**" access="hasRole('ROLE_MODERATOR')"/>
+        <intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>
+<!--        <intercept-url pattern="/**" access="isAuthenticated()"/>-->
 
+        <form-login login-page="/"
+                    login-processing-url="/user/login"
+                    authentication-success-handler-ref="customAuthenticationSuccessHandler"
+                    authentication-failure-url="/user/login?error=true"/>
+<!--                    default-target-url="/main"-->
+        <logout logout-url="/user/logout"
+                logout-success-url="/user/login?logout=true"
+                invalidate-session="true"
+                delete-cookies="JSESSIONID"/>
+        <access-denied-handler error-page="/user/access-denied"/>
 
+        <csrf disabled="true"/>
+        <remember-me key="myGoodKey" token-validity-seconds="100000"/>
     </http>
 
-    <user-service>
-        <user name="user" password="(noop)123" authorities="USER"/>
-    </user-service>
+    <beans:bean id="customAuthenticationSuccessHandler" class="aspects.CustomAuthenticationSuccessHandler">
+        <beans:property name="defaultTargetUrl" value="/main" />
+        <beans:property name="adminTargetUrl" value="/admin/main" />
+        <beans:property name="moderatorTargetUrl" value="/moderator/main" />
+    </beans:bean>
+
+    <global-method-security secured-annotations="enabled"
+                            proxy-target-class="true"
+                            pre-post-annotations="enabled"/>
+
+    <authentication-manager>
+        <authentication-provider ref="authenticationProvider"/>
+    </authentication-manager>
+    <beans:bean id="authenticationProvider" class="aspects.CustomAuthenticationProvider"/>
+    <beans:bean id="webSecurityExpressionHandler"
+                class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler"/>
+
+
+    <!-- Configuration for JDBC authentication -->
+
+    <!--    <authentication-manager>-->
+    <!--        <authentication-provider>-->
+    <!--            &lt;!&ndash; Використання JDBC для аутентифікації &ndash;&gt;-->
+    <!--            <jdbc-user-service data-source-ref="dataSource"-->
+    <!--                               users-by-username-query="SELECT login, password, enabled FROM users WHERE login = ?"-->
+    <!--                               authorities-by-username-query="SELECT login, role FROM users WHERE login = ? and enabled = 1"/>-->
+    <!--            <password-encoder ref="passwordEncoder"/>-->
+    <!--        </authentication-provider>-->
+    <!--    </authentication-manager>-->
+    <!--    <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.password.NoOpPasswordEncoder"/>-->
+
+    <!-- Data source configuration -->
+
+    <!--    <beans:bean id="dataSource" class="org.springframework.jdbc.datasource.DriverManagerDataSource">-->
+    <!--        <beans:property name="driverClassName" value="com.mysql.cj.jdbc.Driver"/>-->
+    <!--        <beans:property name="url" value="jdbc:mysql://localhost:3306/recipe_randomizer?serverTimezone=UTC"/>-->
+    <!--        <beans:property name="username" value="root"/>-->
+    <!--        <beans:property name="password" value="root"/>-->
+    <!--    </beans:bean>-->
 
 
 </beans:beans>
+

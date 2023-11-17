@@ -1,6 +1,7 @@
 package persistence.entity;
 
 import lombok.Data;
+import lombok.ToString;
 
 import javax.persistence.*;
 import java.util.ArrayList;
@@ -16,6 +17,7 @@ public class RegionalCuisine {
     @Column(nullable = false)
     private String name;
 
+    @ToString.Exclude
     @OneToMany(mappedBy = "regionalCuisine")
     private List<Recipe> recipes;
 

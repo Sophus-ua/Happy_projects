@@ -10,6 +10,6 @@ import java.util.List;
 
 @Service
 public interface ISearchFormService {
-    List<Recipe> findRecipesBySearchModel(SearchModel searchModel);
-    String findAndRandomizeRecipeIdsJSON(SearchModel searchModel);
+    List<Recipe> findRecipesForUserBySearchModel(SearchModel searchModel, String username);
+    String findAndRandomizeRecipeIdsForUserJSON(SearchModel searchModel, String username);
 }

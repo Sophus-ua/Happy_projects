@@ -16,7 +16,7 @@ public interface IRecipeService {
 
     byte[] getImageDataById(long id);
 
-    List<Recipe> findRecipesByNameLike(String recipeName);
+    List<Recipe> findRecipesByNameLikeForUser(String recipeName, String username);
 
     void updateImageDataById(byte[] imageData, Long recipeId);
 
