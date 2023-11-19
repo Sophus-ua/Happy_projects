@@ -33,6 +33,7 @@ create table users
     role ENUM('ADMIN', 'MODERATOR', 'USER') not null,
     enabled TINYINT(1) not null DEFAULT 1,
     registration_date DATE,
+    last_login_date DATE,
       constraint pk_id primary key (id)
 );
 |

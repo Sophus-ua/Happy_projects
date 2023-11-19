@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 
@@ -30,7 +31,7 @@
 
         .form.recipesNameLike input[type="submit"] {
             margin-left: 10px; /* Відступ зліва для кнопки submit */
-             width: 75px;
+             width: 170px;
              height: 50px;
         }
 
@@ -49,7 +50,7 @@
 
         /* Стилі для роздільної лінії */
         .divider {
-            border-top: 1px solid #ccc;
+            border-top: 10px solid #ccc;
             margin-top: 20px;
         }
 
@@ -63,7 +64,7 @@
         }
 
         input.search.submit[type="submit"] {
-            height: 60px;
+            height: 40px;
         }
         /* Стилі для "Швидкий пошук по назві" форми */
         .recipesNameLike input[type="submit"]:hover {
@@ -99,19 +100,34 @@
             color: #fff; /* Колір тексту при наведенні */
         }
 
+        .header {
+            background-color: #4B0082; /* Темнофіолетовий колір */
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+
     </style>
 
 </head>
 
 <body>
+    <div class="header">
+        <sec:authorize access="hasRole('ROLE_MODERATOR')">
+            <h1>Сторінка модератора</h1>
+        </sec:authorize>
+    </div>
 
     <div class="button-container">
-        <button type="button" onclick="window.location.href='/recipe-handler'" class="form-button">Додати новий рецепт</button>
-        <button type="button" onclick="window.location.href='/tag-handler'" class="form-button">Управління ТЕГами</button>
-        <button type="button" onclick="window.location.href='/test'" class="form-button">ТЕСТ</button>
-        <form action="/user/logout" method="post">
-            <input type="submit" value="Logout" class="form-button"/>
-        </form>
+            <button type="button" onclick="window.location.href='/recipe-handler'" class="form-button">Додати новий рецепт</button>
+        <sec:authorize access="hasRole('ROLE_USER')">
+             <button type="button" onclick="window.location.href='/tag-handler'" class="form-button">Управління ТЕГами</button>
+        </sec:authorize>
+            <form action="/user/logout" method="post">
+                <input type="submit" value="Logout" class="form-button"/>
+            </form>
     </div>
 
     <div style="text-align: center;">
@@ -125,18 +141,38 @@
     <form action="/search-recipes-name-like" method="get" class="form recipesNameLike">
         <label for="recipesNameLike"><h3> Швидкий пошук по назві: </h3></label>
         <input type="text" id="recipesNameLike" name="recipesNameLike">
-        <input type="submit" value="Пошук">
+        <input type="submit" value="Свої рецепти" >
+        <sec:authorize access="hasRole('ROLE_USER')">
+            <input type="submit" value="Загальні рецепти" formaction="/common/search-recipes-name-like" >
+        </sec:authorize>
     </form>
 
         <div class="divider"></div>
 
-        <h2 class="centered-title">Пошук за критеріями</h2>
+
+
+
 
     <form action="/search-recipes-by-form" method="get" class="form searchForm" id="searchForm">
 
-        <input type="submit" value="Звичайний пошук" class="search submit">
-        <input type="submit" value="Рандомайзер рецептів" class="search submit" formaction="/recipe-search-randomizer">
+        <input type="submit" value="12 рандомних Своїх рецептів" class="search submit" formaction="/recipe-search-randomizer">
+        <h2 class="centered-title">Пошук за критеріями</h2>
+        <sec:authorize access="hasRole('ROLE_USER')">
+           <input type="submit" value="12 рандомних Загальних рецептів" class="search submit" formaction="/common/recipe-search-randomizer">
+        </sec:authorize>
+        <sec:authorize access="hasRole('ROLE_MODERATOR')">
+           <label></label>
+        </sec:authorize>
+
+
+        <input type="submit" value="Пошук в Своїх рецептах" class="search submit">
         <label></label>
+        <sec:authorize access="hasRole('ROLE_USER')">
+           <input type="submit" value="Пошук в Загальних рецептах" class="search submit" formaction="/common/search-recipes-by-form">
+        </sec:authorize>
+        <sec:authorize access="hasRole('ROLE_MODERATOR')">
+           <label></label>
+        </sec:authorize>
 
 
         <div style="border: 1px solid #000; padding: 5px;">
@@ -169,18 +205,19 @@
             <div id="excludeAllergensSelect" style="height: 215px; overflow: auto; margin-top: 10px;"></div>
         </div>
 
-
-        <div style="border: 1px solid #000; padding: 5px;">
-            <label style="text-decoration: underline;">Вибрати з ТЕГом:</label>
-            <input type="hidden" name="includeCustomTagsIds" id="includeCustomTagsIds" />
-            <div id="includeCustomTagsSelect" style="height: 165px; overflow: auto; margin-top: 10px;"></div>
-        </div>
-        <div style="border: 1px solid #000; padding: 5px;">
-            <label style="text-decoration: underline;">Виключити з ТЕГом:</label>
-            <input type="hidden" name="excludeCustomTagsIds" id="excludeCustomTagsIds" />
-            <div id="excludeCustomTagsSelect" style="height: 165px; overflow: auto; margin-top: 10px;"></div>
-        </div>
-        <label></label>
+        <sec:authorize access="hasRole('ROLE_USER')">
+            <div style="border: 1px solid #000; padding: 5px;">
+                <label style="text-decoration: underline;">Вибрати з ТЕГом:</label>
+                <input type="hidden" name="includeCustomTagsIds" id="includeCustomTagsIds" />
+                <div id="includeCustomTagsSelect" style="height: 165px; overflow: auto; margin-top: 10px;"></div>
+            </div>
+            <div style="border: 1px solid #000; padding: 5px;">
+                <label style="text-decoration: underline;">Виключити з ТЕГом:</label>
+                <input type="hidden" name="excludeCustomTagsIds" id="excludeCustomTagsIds" />
+                <div id="excludeCustomTagsSelect" style="height: 165px; overflow: auto; margin-top: 10px;"></div>
+            </div>
+            <label></label>
+        </sec:authorize>
 
     </form>
 

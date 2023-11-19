@@ -2,6 +2,8 @@ package persistence.dao.repositories;
 
 
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
@@ -12,11 +14,16 @@ import persistence.entity.Recipe;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 
 @Repository
 @Transactional
 public interface IRecipeRepository extends CrudRepository<Recipe, Long> {
+
+    @Query(value = "select * from recipes where id in :longIds", nativeQuery = true)
+    Page<Recipe> findAllPagesById(@Param("longIds") List<Long> longIds, Pageable pageable);
+
     @Query(value = "select name from recipes where id = ?1", nativeQuery = true)
     Optional<String> findNameById(long id);
     @Modifying
@@ -43,10 +50,10 @@ public interface IRecipeRepository extends CrudRepository<Recipe, Long> {
 
     @Query(value = "select id from recipes", nativeQuery = true)
     Iterable<Integer> findAllRecipesIds();
-    @Query(value = "select * from recipes r\n" +
+    @Query(value = "select r.id from recipes r\n" +
             "join users u on u.id = r.user_id\n" +
             "where r.name like ?1 and u.username = ?2", nativeQuery = true)
-    Iterable<Recipe> findByNameLikeForUser(String nameLike, String username);
+    Iterable<Integer> findIdsByNameLikeForUser(String nameLike, String username);
 
     @Query(value = "select r.id from recipes r\n" +
             "join users u on u.id = r.user_id\n" +

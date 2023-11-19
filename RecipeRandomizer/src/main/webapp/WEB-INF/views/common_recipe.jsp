@@ -41,23 +41,16 @@
 
 		<body>
 		    <div class="header">
-                <sec:authorize access="hasRole('ROLE_MODERATOR')">
-                    <h1>Сторінка модератора</h1>
-                </sec:authorize>
+		            <h2>Загальний рецепт</h2>
             </div>
 
 
 
             <div class="button-container">
                 <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
-                <form id="updateRecipe" action="/recipe-handler" method="post">
+                <form id="updateRecipe" action="/add-recipe-to-mine" method="post">
                     <input type="hidden" name="recipeID" value="${recipeDTO.id}">
-                    <button type="submit" class="form-button">Редагувати рецепт</button>
-                </form>
-                <form id="deleteRecipe" action="/delete-recipe" method="post">
-                    <button type="button" onclick="showConfirmation()" class="form-button">Видалити Рецепт</button>
-                    <input type="hidden" name="recipeID" value="${recipeDTO.id}">
-                    <input type="submit" id="hiddenDeleteButton" style="display: none;">
+                    <button type="submit" class="form-button">Додати рецепт до своїх</button>
                 </form>
 
             </div>

@@ -16,11 +16,23 @@
                    background-color: #a020f0; /* Фіолетовий колір при наведенні */
                    color: #fff; /* Колір тексту при наведенні */
                }
+
+               .header {
+                   background-color: #4B0082; /* Темнофіолетовий колір */
+                   color: #fff;
+                   padding: 10px;
+                   text-align: center;
+               }
+
 			</style>
 
 		</head>
 
 		<body>
+		    <div class="header">
+                <h1>Сторінка адміна</h1>
+            </div>
+
 		    <button type="button" onclick="window.location.href='/admin/main'" class="form-button">На головну сторінку</button>
 
 			<div style="text-align: center;">

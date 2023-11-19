@@ -1,4 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
+<%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <!DOCTYPE html>
 <html>
 
@@ -135,6 +136,14 @@
             color: #fff; /* Колір тексту при наведенні */
         }
 
+        .header {
+            background-color: #4B0082; /* Темнофіолетовий колір */
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
     </style>
 
 </head>
@@ -145,6 +154,11 @@
 
 
 <body>
+        <div class="header">
+            <sec:authorize access="hasRole('ROLE_MODERATOR')">
+                <h1>Сторінка модератора</h1>
+            </sec:authorize>
+        </div>
 
         <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
 
@@ -187,10 +201,17 @@
              <label for="commonAllergensSelect" style="text-decoration: underline;">Можливі Алергени:</label>
              <div id="commonAllergensSelect" style="height: 200px; overflow: auto; margin-top: 10px;"></div>
         </div>
-        <div style="border: 1px solid #000; padding: 5px;">
-             <label for="customTagsSelect" style="text-decoration: underline;">Свої Теги:</label>
-             <div id="customTagsSelect" style="height: 200px; overflow: auto; margin-top: 10px;"></div>
-        </div>
+        <sec:authorize access="hasRole('ROLE_USER')">
+            <div style="border: 1px solid #000; padding: 5px;">
+                 <label for="customTagsSelect" style="text-decoration: underline;">Свої Теги:</label>
+                 <div id="customTagsSelect" style="height: 200px; overflow: auto; margin-top: 10px;"></div>
+            </div>
+        </sec:authorize>
+
+        <sec:authorize access="hasRole('ROLE_MODERATOR')">
+           <label></label>
+        </sec:authorize>
+
 
         <input type="hidden" name="dishesByIngredientsIds" id="dishesByIngredientsIds" />
         <input type="hidden" name="allergensIds" id="allergensIds" />

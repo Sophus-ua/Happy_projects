@@ -75,7 +75,7 @@ public class DTOServiceImpl implements IDTOService {
                 .collect(Collectors.toList());
     }
 
-    @PostAuthorize("returnObject.username == authentication.name")
+    @PostAuthorize("returnObject.username == authentication.name || returnObject.username == \"Moderator\"")
     @Nullable
     @Override
     public RecipeDTO findRecipeDTO(long id) {

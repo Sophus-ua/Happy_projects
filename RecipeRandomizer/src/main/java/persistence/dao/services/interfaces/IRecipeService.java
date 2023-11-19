@@ -2,6 +2,7 @@ package persistence.dao.services.interfaces;
 
 
 
+import exceptions.DatabaseUpdateException;
 import org.springframework.stereotype.Service;
 import persistence.entity.*;
 
@@ -11,14 +12,11 @@ import java.util.List;
 public interface IRecipeService {
 
     String findNameById(long id);
-    void test(long id);
     Recipe findById(long id);
-
     byte[] getImageDataById(long id);
-
-    List<Recipe> findRecipesByNameLikeForUser(String recipeName, String username);
-
+    List<Long>findRecipeIdsByNameLikeForUser(String nameLike, String username);
     void updateImageDataById(byte[] imageData, Long recipeId);
-
     String deleteByIdAndUsername(long id, String username);
+
+    Long copyRecipeToUserById(String username, Long recipeID) throws DatabaseUpdateException;
 }

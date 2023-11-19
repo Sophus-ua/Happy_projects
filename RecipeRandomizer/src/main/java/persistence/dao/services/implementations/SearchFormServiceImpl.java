@@ -3,10 +3,12 @@ package persistence.dao.services.implementations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import exceptions.EmptyRecipeIds;
+import exceptions.EmptyRecipeIdsException;
 import lombok.extern.slf4j.Slf4j;
 import models.SearchModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 import persistence.dao.repositories.IRecipeRepository;
@@ -23,40 +25,35 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     private IRecipeRepository recipeRepository;
 
-
     @Override
     @NonNull
-    public List<Recipe> findRecipesForUserBySearchModel(SearchModel searchModel, String username) {
-        Set<Integer> recipesIds = findRecipesIdsForUserBySearchModel(searchModel, username);
-        Set<Long> longIds = recipesIds.stream()
-                .map(Integer::longValue)
-                .collect(Collectors.toSet());
+    public Page<Recipe> findPageOfRecipesByIds(List<Long> recipesIds, int page, int size) throws EmptyRecipeIdsException {
+        if (recipesIds == null || page ==0 || size == 0)
+            throw new EmptyRecipeIdsException("Список пошуку пустий :(");
 
-        Iterable<Recipe> iterable = recipeRepository.findAllById(longIds);
-        return StreamSupport
-                .stream(iterable.spliterator(), false)
-                .collect(Collectors.toList());
+        PageRequest pageable = PageRequest.of(page - 1, size);
+        return recipeRepository.findAllPagesById(recipesIds, pageable);
     }
 
     @Override
     @NonNull
-    public String findAndRandomizeRecipeIdsForUserJSON(SearchModel searchModel, String username) {
-        Set<Integer> recipesIds = findRecipesIdsForUserBySearchModel(searchModel, username);
-        List<Integer> idsList = new ArrayList<>(recipesIds);
-        Collections.shuffle(idsList);
+    public String getRandomizeRecipeIdsJSON(SearchModel searchModel, String username) {
+        List<Long> recipeIds = findRecipeIdsForUserBySearchModel(searchModel,username);
+        Collections.shuffle(recipeIds);
+        recipeIds = recipeIds.subList(0, Math.min(12, recipeIds.size()));
         try {
             ObjectMapper objectMapper = new ObjectMapper();
-            return objectMapper.writeValueAsString(idsList);
+            return objectMapper.writeValueAsString(recipeIds);
         } catch (JsonProcessingException e) {
-
             System.err.println("Error parsing recipesIds to Json in " +
                     "SearchFormServiceImpl.findRecipeIdsBySearchModelJSON()");
             throw new RuntimeException(e);
         }
     }
 
+    @Override
     @NonNull
-    private Set<Integer> findRecipesIdsForUserBySearchModel(SearchModel searchModel, String username) {
+    public List<Long> findRecipeIdsForUserBySearchModel(SearchModel searchModel, String username) {
         Set<Integer> recipesIds = new HashSet<>();
         List<Long> variableList = new ArrayList<>();
         Object[][] filteringParameters = getArrayOfFilteringParameters();
@@ -97,17 +94,19 @@ public class SearchFormServiceImpl implements ISearchFormService {
             recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
                     filteringOrder, username);
 
-        } catch (EmptyRecipeIds e) {
-            return new HashSet<>();
+        } catch (EmptyRecipeIdsException e) {
+            return new ArrayList<>();
         }
         System.out.println("\n");
-        return recipesIds;
+        return recipesIds.stream()
+                .map(Integer::longValue)
+                .collect(Collectors.toList());
     }
 
     @NonNull
     private Set<Integer> checkingThenFilteringRecipeIds(Set<Integer> recipesIds, List<Long> variableList,
                                                         Object[][] filteringParameters, int filteringOrder,
-                                                        String username) throws EmptyRecipeIds {
+                                                        String username) throws EmptyRecipeIdsException {
 
         if (variableList.isEmpty() || variableList.get(0) == 0 && variableList.size() == 1)
             return recipesIds;
@@ -118,7 +117,7 @@ public class SearchFormServiceImpl implements ISearchFormService {
         System.out.print("\nSearchFormServiceImpl recipesIds in bloc " + (filteringOrder+1) + " : ");
         recipesIds.forEach(System.out::print);
 
-        if (recipesIds.isEmpty()) throw new EmptyRecipeIds();
+        if (recipesIds.isEmpty()) throw new EmptyRecipeIdsException();
         return recipesIds;
     }
 

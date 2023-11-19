@@ -91,10 +91,10 @@ public class Recipe {
     }
 
     public Recipe(String name, MealCategory mealCategory, String recipeText, User user) {
-        this.user = user;
         this.name = name;
         this.mealCategory = mealCategory;
         this.recipeText = recipeText;
+        this.user = user;
         dishesByIngredients = new ArrayList<>();
         allergens = new ArrayList<>();
         customTags = new ArrayList<>();

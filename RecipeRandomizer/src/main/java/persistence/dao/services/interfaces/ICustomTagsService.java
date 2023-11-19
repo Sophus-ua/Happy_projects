@@ -6,6 +6,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface ICustomTagsService {
     String addCustomTag(CustomTagDTO customTagDTO);
-    String deleteCustomTagById(CustomTagDTO customTagDTO);
+    String deleteCustomTagByIdForUser(CustomTagDTO customTagDTO);
 
 }

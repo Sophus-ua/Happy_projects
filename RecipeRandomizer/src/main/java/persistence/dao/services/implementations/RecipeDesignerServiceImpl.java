@@ -2,6 +2,7 @@ package persistence.dao.services.implementations;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import exceptions.DatabaseUpdateException;
 import lombok.extern.slf4j.Slf4j;
 import models.RecipeDTO;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,31 +46,49 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
     @Transactional
     @Override
     @NonNull
-    public RecipeDTO saveRecipeByRecipeDTO(RecipeDTO recipeDTO) {
+    public RecipeDTO saveRecipeByRecipeDTO(RecipeDTO recipeDTO) throws DatabaseUpdateException {
         System.out.println("recipeDTO in DTOServiceImpl.saveRecipeByRecipeDTO: \n" + recipeDTO);
 
         Recipe recipe = new Recipe();
-
         if (recipeDTO.getId() != null) {
             Optional<Recipe> optional = recipeRepository.findById(recipeDTO.getId());
-            if (optional.isPresent()) recipe = optional.get();
+            if (optional.isPresent()) {
+                recipe = optional.get();
+                if (!recipe.getUser().getUsername().equalsIgnoreCase(recipeDTO.getUsername()) )
+                    throw new DatabaseUpdateException(ResultOfUpdateOrAddRecipe.FAILED_TO_UPDATE.message);
+            }
         }
 
+        recipe = fillRecipe(recipe, recipeDTO);
+
+        try {
+            recipe = recipeRepository.save(recipe);
+            System.out.println("Recipe після збереження : \n" + recipe);
+        } catch (Exception e) {
+            if (recipeDTO.getId() == null)
+                throw new DatabaseUpdateException(ResultOfUpdateOrAddRecipe.NO_RECIPE_ADDED.message);
+            else
+                throw new DatabaseUpdateException(ResultOfUpdateOrAddRecipe.FAILED_TO_UPDATE.message);
+        }
+        recipeDTO.setId(recipe.getId());
+        return recipeDTO;
+    }
+
+    @Transactional
+    @NonNull
+    private Recipe fillRecipe(Recipe recipe, RecipeDTO recipeDTO){
         recipe.setName(recipeDTO.getName());
 
         Optional<User> optionalU = userRepository.findByUsername(recipeDTO.getUsername());
-        if (optionalU.isPresent())
-            recipe.setUser(optionalU.get());
+        optionalU.ifPresent(recipe::setUser);
 
         Optional<MealCategory> optionalM = mealCategoryRepository.findById(recipeDTO.getMealCategoryID());
-        if (optionalM.isPresent())
-            recipe.setMealCategory(optionalM.get());
+        optionalM.ifPresent(recipe::setMealCategory);
 
         Long regionalCuisineId = recipeDTO.getRegionalCuisineID();
         if (regionalCuisineId != null) {
             Optional<RegionalCuisine> optionalR = regionalCuisineRepository.findById(regionalCuisineId);
-            if (optionalR.isPresent())
-                recipe.setRegionalCuisine(optionalR.get());
+            optionalR.ifPresent(recipe::setRegionalCuisine);
         }
 
         recipe.setCookingTimeMin(recipeDTO.getCookingTimeMin());
@@ -87,26 +106,7 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
             updateCustomTags(recipe, recipeDTO.getCustomTagsIds());
         }
 
-
-        String message;
-        try {
-            recipe = recipeRepository.save(recipe);
-            System.out.println("Recipe після збереження : \n" + recipe);
-        } catch (Exception e) {
-            if (recipeDTO.getId() == null)
-                message = ResultOfUpdateOrAddRecipe.NO_RECIPE_ADDED.message;
-            else
-                message = ResultOfUpdateOrAddRecipe.FAILED_TO_UPDATE.message;
-//            return message;
-        }
-        if (recipeDTO.getId() == null)
-            message = ResultOfUpdateOrAddRecipe.SUCCESSFULLY_ADDED.message;
-        else
-            message = ResultOfUpdateOrAddRecipe.SUCCESSFULLY_UPDATED.message;
-
-        recipeDTO.setId(recipe.getId());
-        return recipeDTO;
-//        return message;
+        return recipe;
     }
 
     @Transactional

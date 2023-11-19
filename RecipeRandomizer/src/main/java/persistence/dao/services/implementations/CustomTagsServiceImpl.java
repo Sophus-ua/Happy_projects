@@ -39,11 +39,12 @@ public class CustomTagsServiceImpl implements ICustomTagsService {
     }
 
     @Override
-    public String deleteCustomTagById(CustomTagDTO customTagDTO) {
-        if (customTagDTO == null || customTagDTO.getId() == 0)
+    public String deleteCustomTagByIdForUser(CustomTagDTO customTagDTO) {
+        if (customTagDTO == null || customTagDTO.getId() == 0 ||
+                customTagDTO.getUsername() == null || customTagDTO.getUsername().isEmpty())
             return ResultOfAction.DELETE_FAILED.message;
 
-        customTagRepository.deleteById(customTagDTO.getId());
+        customTagRepository.deleteByIdAndUsername(customTagDTO.getId(), customTagDTO.getUsername());
         customTagRepository.resetAutoIncrement();
 
         if (customTagRepository.existsById(customTagDTO.getId()))

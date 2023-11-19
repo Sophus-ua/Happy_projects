@@ -34,9 +34,20 @@
             color: #fff; /* Колір тексту при наведенні */
         }
 
+        .header {
+            background-color: #4B0082; /* Темнофіолетовий колір */
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
     </style>
 
 	<body>
+	    <div class="header"></div>
+
+
 	    <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
 		<div class="button-container">
 			<button id="prevButton">Назад</button>
@@ -100,25 +111,6 @@
         	};
 
         	recipeImage.src = imageUrl;
-
-
-
-            /*
-        	// Визначаємо фільтр в залежності від індексу малюнка
-            var filter = 'none'; // За замовчуванням - без фільтру
-            if (currentRecipeIndex == 1) {
-               filter = 'saturate(75%)'; // Другий малюнок - втрата насиченості кольорів
-            } else if (currentRecipeIndex == 2) {
-                filter = 'saturate(50%)';
-            } else if (currentRecipeIndex == 3) {
-                filter = 'saturate(25%)';
-            } else if (currentRecipeIndex > 3) {
-                filter = 'grayscale(100%)'; // Четвертий малюнок і після - чорно-білий фільтр
-            }
-
-            // Застосовуємо фільтр до малюнка
-            recipeImage.style.filter = filter;
-            */
         }
 
 

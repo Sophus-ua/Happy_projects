@@ -30,6 +30,12 @@ public interface ICustomTagRepository extends CrudRepository<CustomTag, Long> {
     List<Integer> findIdsByRecipeId (long recipeId);
 
     @Modifying
+    @Query(value = "delete ct from custom_tags ct\n" +
+            "join users u on u.id = ct.user_id\n" +
+            "where ct.id = ?1 and u.username = ?2", nativeQuery = true)
+    void deleteByIdAndUsername(long recipeId, String username);
+
+    @Modifying
     @Query(value = "ALTER TABLE custom_tags AUTO_INCREMENT = 1", nativeQuery = true)
     void resetAutoIncrement();
 }

@@ -1,18 +1,26 @@
 package controllers;
 
 
+import exceptions.DatabaseUpdateException;
+import exceptions.EmptyRecipeIdsException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpSession;
 import models.CustomTagDTO;
 import models.ImageBufferDTO;
 import models.RecipeDTO;
 import models.SearchModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import persistence.dao.services.interfaces.*;
+import persistence.entity.Recipe;
+
+import java.util.List;
 
 
 @Controller
@@ -26,15 +34,14 @@ public class RecipeRandomizerController {
     private ICustomTagsService customTagsService;
 
 
-
-    @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public String test() {
-        recipeService.test(2);
-        return "/WEB-INF/views/main.jsp";
-    }
-
     @RequestMapping(value = "/main", method = RequestMethod.GET)
-    public String mainPage() {
+    public String mainPage(@ModelAttribute("message") String message,
+                           HttpServletRequest request, HttpSession session,
+                           Model model) {
+        if (message != null)
+            model.addAttribute("message", message);
+        String sessionKey = request.getUserPrincipal().getName() + "recipeIds";
+        session.removeAttribute(sessionKey);
         return "/WEB-INF/views/main.jsp";
     }
 
@@ -45,8 +52,10 @@ public class RecipeRandomizerController {
     }
 
     @PostMapping(value = "/delete-tag")
-    public String deleteTag(@ModelAttribute("customTagDTO") CustomTagDTO customTagDTO, Model model) {
-        String result = customTagsService.deleteCustomTagById(customTagDTO);
+    public String deleteTag(@ModelAttribute("customTagDTO") CustomTagDTO customTagDTO, Model model,
+                            HttpServletRequest request) {
+        customTagDTO.setUsername(request.getUserPrincipal().getName());
+        String result = customTagsService.deleteCustomTagByIdForUser(customTagDTO);
         model.addAttribute("message", result);
         return "/WEB-INF/views/tag_handler.jsp";
     }
@@ -61,28 +70,37 @@ public class RecipeRandomizerController {
     }
 
     @GetMapping(value = "/recipe-handler")
-    public String addRecipe() {
+    public String addRecipe(@ModelAttribute("message") String message, Model model) {
+        if (message != null)
+            model.addAttribute("message", message);
+
         return "/WEB-INF/views/recipe_handler.jsp";
     }
 
     @PostMapping(value = "/recipe-handler")
-    public ModelAndView updateRecipe(@RequestParam(name = "recipeID") long recipeID, ModelAndView modelAndView) {
+    public String updateRecipe(@RequestParam(name = "recipeID") long recipeID, Model model) {
         RecipeDTO recipeDTO = dtoService.findRecipeDTO(recipeID);
         System.out.println("RecipeRandomizerController.updateRecipe recipeDTO: " + recipeDTO);
-        modelAndView.addObject("recipeDTOJson", recipeDesignerService.parseRecipeDTOtoJson(recipeDTO));
-        modelAndView.setViewName("/WEB-INF/views/recipe_handler.jsp");
-        return modelAndView;
+        model.addAttribute("recipeDTOJson", recipeDesignerService.parseRecipeDTOtoJson(recipeDTO));
+        return "/WEB-INF/views/recipe_handler.jsp";
     }
 
     @PostMapping(value = "/recipe-add-or-update")
-    public ModelAndView recipeAddOrUpdate(@ModelAttribute("recipeDTO") RecipeDTO recipeDTO, ModelAndView modelAndView,
-                                          HttpServletRequest request) {
+    public String recipeAddOrUpdate(@ModelAttribute("recipeDTO") RecipeDTO recipeDTO, Model model,
+                                    HttpServletRequest request, RedirectAttributes redirectAttributes) {
 
         String username = request.getUserPrincipal().getName();
         recipeDTO.setUsername(username);
-        recipeDTO = recipeDesignerService.saveRecipeByRecipeDTO(recipeDTO);
+
+        try {
+            recipeDTO = recipeDesignerService.saveRecipeByRecipeDTO(recipeDTO);
+        } catch (DatabaseUpdateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            return "redirect:/main";
+        }
 
 //        String message = recipeImageCacheService.updateImageFromCacheWithDelay(recipeDTO);
+
         ImageBufferDTO imageDTO = new ImageBufferDTO(recipeDTO.getId(), recipeDTO.getName(), recipeDTO.getUsername());
         String message = recipeImageCacheService.updateImageFromBufferWithDelay(imageDTO);
 
@@ -92,11 +110,11 @@ public class RecipeRandomizerController {
             } catch (InterruptedException e) {
                 System.out.println("RecipeRandomizerController.recipeAddOrUpdate error when try sleep");
             }
-            return getRecipeById(recipeDTO.getId(), modelAndView);
+//            return getRecipeById(recipeDTO.getId(), model, redirectAttributes);
+            return "redirect:/recipe/" + recipeDTO.getId();
         } else {
-            modelAndView.addObject("message", message);
-            modelAndView.setViewName("/WEB-INF/views/main.jsp");
-            return modelAndView;
+            redirectAttributes.addFlashAttribute("message", message);
+            return "redirect:/main";
         }
     }
 
@@ -110,56 +128,108 @@ public class RecipeRandomizerController {
     }
 
     @GetMapping(value = "/recipes-found")
-    public String recipesFound() {
-        return "/WEB-INF/views/recipes_found.jsp";
+    public String recipesFound(HttpServletRequest request, HttpSession session,
+                               Model model, RedirectAttributes redirectAttributes,
+                               @RequestParam(defaultValue = "1") int page,
+                               @RequestParam(defaultValue = "20") int size) {
+        String username = request.getUserPrincipal().getName();
+        String sessionKey = username + "recipeIds";
+
+        try {
+            Object sessionAttribute = session.getAttribute(sessionKey);
+            if (!(sessionAttribute instanceof List<?>))
+                throw new EmptyRecipeIdsException();
+
+            List<?> rawList = (List<?>) sessionAttribute;
+            if (rawList.isEmpty() || !(rawList.get(0) instanceof Long))
+                throw new EmptyRecipeIdsException();
+
+            List<Long> recipesIds = (List<Long>) rawList;
+            Page<Recipe> recipesPage = searchFormService.findPageOfRecipesByIds(recipesIds, page, size);
+
+            model.addAttribute("recipes", recipesPage.getContent());
+            model.addAttribute("currentPage", page);
+            model.addAttribute("totalPages", recipesPage.getTotalPages());
+            return "/WEB-INF/views/recipes_found.jsp";
+        } catch (EmptyRecipeIdsException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            return "redirect:/main";
+        }
     }
 
+
     @GetMapping(value = "/search-recipes-name-like")
-    public ModelAndView searchRecipesNameLike(@RequestParam(name = "recipesNameLike", required = false) String recipeName,
-                                              ModelAndView modelAndView, HttpServletRequest request) {
-        if (recipeName == null || recipeName.isEmpty()) {
-            modelAndView.setViewName("/WEB-INF/views/main.jsp");
-            return modelAndView;
-        }
+    public String searchRecipesNameLike(@RequestParam(name = "recipesNameLike", required = false) String recipeName,
+                                        HttpServletRequest request, HttpSession session) {
+        if (recipeName == null || recipeName.isEmpty())
+            return "redirect:/main";
 
         String username = request.getUserPrincipal().getName();
-        modelAndView.addObject("recipes", recipeService.findRecipesByNameLikeForUser(recipeName, username));
-        modelAndView.setViewName("/WEB-INF/views/recipes_found.jsp");
-        return modelAndView;
+        List<Long> recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, username);
+        String sessionKey = username + "recipeIds";
+        session.setAttribute(sessionKey, recipeIds);
+
+        return "redirect:/recipes-found";
     }
 
     @GetMapping(value = "/search-recipes-by-form")
-    public ModelAndView postSearchRecipesByForm(@ModelAttribute("searchModel") SearchModel searchModel,
-                                                ModelAndView modelAndView, HttpServletRequest request) {
+    public String searchRecipesIdsByForm(@ModelAttribute("searchModel") SearchModel searchModel,
+                                         HttpServletRequest request, HttpSession session) {
         String username = request.getUserPrincipal().getName();
-        modelAndView.addObject("recipes", searchFormService.findRecipesForUserBySearchModel(searchModel, username));
-        modelAndView.setViewName("/WEB-INF/views/recipes_found.jsp");
-        return modelAndView;
+        List<Long> recipeIds = searchFormService.findRecipeIdsForUserBySearchModel(searchModel, username);
+        String sessionKey = username + "recipeIds";
+        session.setAttribute(sessionKey, recipeIds);
+
+        return "redirect:/recipes-found";
     }
 
     @GetMapping(value = "/recipe-search-randomizer")
-    public ModelAndView postRecipeSearchRandomizer(@ModelAttribute("searchModel") SearchModel searchModel,
-                                                   ModelAndView modelAndView, HttpServletRequest request) {
+    public String recipeSearchRandomizer(@ModelAttribute("searchModel") SearchModel searchModel,
+                                         Model model, HttpServletRequest request) {
         String username = request.getUserPrincipal().getName();
-        String recipesIdsJson = searchFormService.findAndRandomizeRecipeIdsForUserJSON(searchModel, username);
-        modelAndView.addObject("recipesIdsJson", recipesIdsJson);
-        modelAndView.setViewName("/WEB-INF/views/recipe_randomizer.jsp");
+        String recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, username);
+        model.addAttribute("recipesIdsJson", recipesIdsJson);
 
         System.out.println("/recipe-search-randomizer  recipesIdsJson.length: " + recipesIdsJson.length());
-        return modelAndView;
+        return "/WEB-INF/views/recipe_randomizer.jsp";
     }
 
-
     @GetMapping(value = "/recipe/{id}")
-    public ModelAndView getRecipeById(@PathVariable Long id, ModelAndView modelAndView) {
+    public String getRecipeById(@PathVariable Long id, Model model, HttpServletRequest request,
+                                RedirectAttributes redirectAttributes) {
         RecipeDTO recipeDTO = dtoService.findRecipeDTO(id);
+
         if (recipeDTO == null) {
-            modelAndView.setViewName("/WEB-INF/views/main.jsp");
-            return modelAndView;
+            redirectAttributes.addFlashAttribute("message", "Рецепт не знайдено");
+            return "redirect:/main";
         }
-        modelAndView.addObject("recipeDTO", recipeDTO);
-        modelAndView.setViewName("/WEB-INF/views/recipe.jsp");
-        return modelAndView;
+
+        model.addAttribute("recipeDTO", recipeDTO);
+        if (recipeDTO.getUsername().equals("Moderator") &&
+                !request.getUserPrincipal().getName().equals("Moderator")) {
+            return "/WEB-INF/views/common_recipe.jsp";
+        } else {
+            return "/WEB-INF/views/recipe.jsp";
+        }
+    }
+
+    @PostMapping(value = "/add-recipe-to-mine")
+    public String addRecipeToMine(@RequestParam(name = "recipeID") long recipeID, HttpServletRequest request,
+                                  RedirectAttributes redirectAttributes) {
+        if (recipeID == 0) {
+            redirectAttributes.addFlashAttribute("message", "НЕ вдалось додати рецепт");
+            return "redirect:/main";
+        }
+
+        Long newRecipeId;
+        try {
+            newRecipeId = recipeService.copyRecipeToUserById(request.getUserPrincipal().getName(), recipeID);
+        } catch (DatabaseUpdateException e) {
+            redirectAttributes.addFlashAttribute("message", e.getMessage());
+            return "redirect:/main";
+        }
+
+        return "redirect:/recipe/" + newRecipeId;
     }
 
 

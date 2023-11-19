@@ -13,8 +13,8 @@
         <intercept-url pattern="/" access="permitAll()"/>
         <intercept-url pattern="/user/**" access="permitAll()"/>
         <intercept-url pattern="/admin/**" access="hasRole('ROLE_ADMIN')"/>
-        <intercept-url pattern="/moderator/**" access="hasRole('ROLE_MODERATOR')"/>
-        <intercept-url pattern="/**" access="hasRole('ROLE_USER')"/>
+        <intercept-url pattern="/tag-handler" access="hasAnyRole('ROLE_USER')"/>
+        <intercept-url pattern="/**" access="hasAnyRole('ROLE_USER', 'ROLE_MODERATOR')"/>
 <!--        <intercept-url pattern="/**" access="isAuthenticated()"/>-->
 
         <form-login login-page="/"
@@ -35,7 +35,7 @@
     <beans:bean id="customAuthenticationSuccessHandler" class="aspects.CustomAuthenticationSuccessHandler">
         <beans:property name="defaultTargetUrl" value="/main" />
         <beans:property name="adminTargetUrl" value="/admin/main" />
-        <beans:property name="moderatorTargetUrl" value="/moderator/main" />
+<!--        <beans:property name="moderatorTargetUrl" value="/moderator/main" />-->
     </beans:bean>
 
     <global-method-security secured-annotations="enabled"

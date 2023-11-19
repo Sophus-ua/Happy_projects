@@ -69,6 +69,14 @@
             color: #fff; /* Колір тексту при наведенні */
         }
 
+        .header {
+            background-color: #4B0082; /* Темнофіолетовий колір */
+            color: #fff;
+            padding: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
 
 
     </style>
@@ -76,6 +84,7 @@
 </head>
 
 <body>
+    <div class="header"></div>
 
     <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
 
