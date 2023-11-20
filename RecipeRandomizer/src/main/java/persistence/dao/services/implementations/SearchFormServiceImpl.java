@@ -28,8 +28,8 @@ public class SearchFormServiceImpl implements ISearchFormService {
     @Override
     @NonNull
     public Page<Recipe> findPageOfRecipesByIds(List<Long> recipesIds, int page, int size) throws EmptyRecipeIdsException {
-        if (recipesIds == null || page ==0 || size == 0)
-            throw new EmptyRecipeIdsException("Список пошуку пустий :(");
+        if (recipesIds == null || page == 0 || size == 0)
+            throw new EmptyRecipeIdsException("Рецептів за такими параметрами не знайдено :(");
 
         PageRequest pageable = PageRequest.of(page - 1, size);
         return recipeRepository.findAllPagesById(recipesIds, pageable);
@@ -37,8 +37,8 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @Override
     @NonNull
-    public String getRandomizeRecipeIdsJSON(SearchModel searchModel, String username) {
-        List<Long> recipeIds = findRecipeIdsForUserBySearchModel(searchModel,username);
+    public String getRandomizeRecipeIdsJSON(SearchModel searchModel, String username) throws EmptyRecipeIdsException {
+        List<Long> recipeIds = findRecipeIdsForUserBySearchModel(searchModel, username);
         Collections.shuffle(recipeIds);
         recipeIds = recipeIds.subList(0, Math.min(12, recipeIds.size()));
         try {
@@ -53,51 +53,48 @@ public class SearchFormServiceImpl implements ISearchFormService {
 
     @Override
     @NonNull
-    public List<Long> findRecipeIdsForUserBySearchModel(SearchModel searchModel, String username) {
+    public List<Long> findRecipeIdsForUserBySearchModel(SearchModel searchModel, String username) throws EmptyRecipeIdsException {
         Set<Integer> recipesIds = new HashSet<>();
         List<Long> variableList = new ArrayList<>();
         Object[][] filteringParameters = getArrayOfFilteringParameters();
         int filteringOrder = 0;
 
-        try {
-            variableList.add(searchModel.getIncludeMealCategoryID());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
 
-            variableList.clear();
-            variableList.add(searchModel.getIncludeRegionalCuisineID());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList.add(searchModel.getIncludeMealCategoryID());
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList = searchModel.getIncludeDishesByIngredientsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList.clear();
+        variableList.add(searchModel.getIncludeRegionalCuisineID());
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList = searchModel.getIncludeCustomTagsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList = searchModel.getIncludeDishesByIngredientsIds();
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList.clear();
-            variableList.add(searchModel.getMaxCookingTime());
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList = searchModel.getIncludeCustomTagsIds();
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList = searchModel.getExcludeDishesByIngredientsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList.clear();
+        variableList.add(searchModel.getMaxCookingTime());
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList = searchModel.getExcludeFoodWithAllergensIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder++, username);
+        variableList = searchModel.getExcludeDishesByIngredientsIds();
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-            variableList = searchModel.getExcludeCustomTagsIds();
-            recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
-                    filteringOrder, username);
+        variableList = searchModel.getExcludeFoodWithAllergensIds();
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder++, username);
 
-        } catch (EmptyRecipeIdsException e) {
-            return new ArrayList<>();
-        }
-        System.out.println("\n");
+        variableList = searchModel.getExcludeCustomTagsIds();
+        recipesIds = checkingThenFilteringRecipeIds(recipesIds, variableList, filteringParameters,
+                filteringOrder, username);
+
+
         return recipesIds.stream()
                 .map(Integer::longValue)
                 .collect(Collectors.toList());
@@ -111,13 +108,15 @@ public class SearchFormServiceImpl implements ISearchFormService {
         if (variableList.isEmpty() || variableList.get(0) == 0 && variableList.size() == 1)
             return recipesIds;
 
-        recipesIds = filterRecipeIds((FilteringParameter)filteringParameters[0][filteringOrder], recipesIds,
+        recipesIds = filterRecipeIds((FilteringParameter) filteringParameters[0][filteringOrder], recipesIds,
                 variableList, (Boolean) filteringParameters[1][filteringOrder], username);
 
-        System.out.print("\nSearchFormServiceImpl recipesIds in bloc " + (filteringOrder+1) + " : ");
+        System.out.print("\nSearchFormServiceImpl recipesIds in bloc " + (filteringOrder + 1) + " : ");
         recipesIds.forEach(System.out::print);
 
-        if (recipesIds.isEmpty()) throw new EmptyRecipeIdsException();
+        if (recipesIds.isEmpty())
+            throw new EmptyRecipeIdsException("Рецептів за такими параметрами не знайдено :(");
+
         return recipesIds;
     }
 

@@ -2,6 +2,7 @@ package persistence.dao.services.implementations;
 
 
 import exceptions.DatabaseUpdateException;
+import exceptions.EmptyRecipeIdsException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.lang.NonNull;
@@ -27,6 +28,11 @@ public class RecipeServiceImpl implements IRecipeService {
     private IRecipeRepository recipeRepository;
 
     private IUserRepository userRepository;
+    @Override
+    public boolean commonRecipeIsPresent(Long commonRecipeId, String username){
+        Integer isPresent = recipeRepository.isCommonRecipeIdInUserRecipe(commonRecipeId, username);
+        return isPresent > 0;
+    }
 
 
     @Override
@@ -56,13 +62,18 @@ public class RecipeServiceImpl implements IRecipeService {
     }
 
     @Override
-    public List<Long> findRecipeIdsByNameLikeForUser(String nameLike, String username) {
+    public List<Long> findRecipeIdsByNameLikeForUser(String nameLike, String username) throws EmptyRecipeIdsException {
         Iterable<Integer> iterable = recipeRepository.findIdsByNameLikeForUser("%" + nameLike + "%", username);
 
-        return StreamSupport
+        List<Long> recipeIds = StreamSupport
                 .stream(iterable.spliterator(), false)
                 .map(Integer::longValue)
                 .collect(Collectors.toList());
+
+        if (recipeIds.isEmpty())
+            throw new EmptyRecipeIdsException(Messages.RECIPE_IDS_BY_NAME_IS_EMPTY.message);
+
+        else return recipeIds;
     }
 
     @Override
@@ -81,8 +92,12 @@ public class RecipeServiceImpl implements IRecipeService {
     @Transactional
     @Override
     @NonNull
-    public Long copyRecipeToUserById(String username, Long recipeID) throws DatabaseUpdateException {
-        Optional<Recipe> recipeOptional = recipeRepository.findById(recipeID);
+    public Long copyRecipeToUserById(String username, Long commonRecipeId) throws DatabaseUpdateException {
+        Integer isPresent = recipeRepository.isCommonRecipeIdInUserRecipe(commonRecipeId, username);
+        if (isPresent >0)
+            throw new DatabaseUpdateException(Messages.COMMON_RECIPE_IS_PRESENT.message);
+
+        Optional<Recipe> recipeOptional = recipeRepository.findById(commonRecipeId);
         if (!recipeOptional.isPresent())
             throw new DatabaseUpdateException(Messages.FAILED_TO_FIND_RECIPE.message);
 
@@ -97,6 +112,7 @@ public class RecipeServiceImpl implements IRecipeService {
                 commonRecipe.getRecipeText(), userOptional.get()
         );
 
+        userNewRecipe.setCommonRecipeId(commonRecipe);
         userNewRecipe.setRegionalCuisine(commonRecipe.getRegionalCuisine());
         userNewRecipe.setCookingTimeMin(commonRecipe.getCookingTimeMin());
         userNewRecipe.setPortions(commonRecipe.getPortions());
@@ -119,9 +135,11 @@ public class RecipeServiceImpl implements IRecipeService {
 
     private enum Messages {
         RECIPE_DELETED("Рецепт був успішно видаленний "),
+        RECIPE_IDS_BY_NAME_IS_EMPTY("Рецептів за таким іменем не знайдено"),
         FAILED_TO_DELETE_RECIPE("Не вдалося видалити рецепт :( "),
         FAILED_TO_FIND_RECIPE("Не вдалося знайти рецепт :( "),
-        FAILED_TO_FIND_USER("Не вдалося знайти користувача :( ");
+        FAILED_TO_FIND_USER("Не вдалося знайти користувача :( "),
+        COMMON_RECIPE_IS_PRESENT("Такий рецепт вже є в вашій базі");
 
         final String message;
 

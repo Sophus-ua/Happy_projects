@@ -1,5 +1,6 @@
 package controllers;
 
+import exceptions.EmptyRecipeIdsException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpSession;
 import models.SearchModel;
@@ -33,12 +34,17 @@ public class ModeratorController {
             return "redirect:/main";
 
         String username = request.getUserPrincipal().getName();
-        List<Long> recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, "Moderator");
+        List<Long> recipeIds;
+        try {
+            recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, "Moderator");
+        } catch (EmptyRecipeIdsException e){
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
         String sessionKey = username + "recipeIds";
         session.setAttribute(sessionKey, recipeIds);
 
         redirectAttributes.addFlashAttribute("message", "Загальні рецепти");
-
         return "redirect:/recipes-found";
     }
 
@@ -47,22 +53,34 @@ public class ModeratorController {
                                          HttpServletRequest request, HttpSession session,
                                          RedirectAttributes redirectAttributes) {
         String username = request.getUserPrincipal().getName();
-        List<Long> recipeIds = searchFormService.findRecipeIdsForUserBySearchModel(searchModel, "Moderator");
+        List<Long> recipeIds;
+        try {
+            recipeIds = searchFormService.findRecipeIdsForUserBySearchModel(searchModel, "Moderator");
+        } catch (EmptyRecipeIdsException e) {
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
+
         String sessionKey = username + "recipeIds";
         session.setAttribute(sessionKey, recipeIds);
-
         redirectAttributes.addFlashAttribute("message", "Загальні рецепти");
-
         return "redirect:/recipes-found";
     }
 
     @GetMapping(value = "/recipe-search-randomizer")
     public String recipeSearchRandomizer(@ModelAttribute("searchModel") SearchModel searchModel,
-                                         Model model) {
-        String recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, "Moderator");
-        model.addAttribute("recipesIdsJson", recipesIdsJson);
+                                         Model model, RedirectAttributes redirectAttributes) {
 
+        String recipesIdsJson;
+        try {
+            recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, "Moderator");
+        } catch (EmptyRecipeIdsException e) {
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
+        model.addAttribute("recipesIdsJson", recipesIdsJson);
         System.out.println("/recipe-search-randomizer  recipesIdsJson.length: " + recipesIdsJson.length());
+        model.addAttribute("message", "Загальні рецепти");
         return "/WEB-INF/views/recipe_randomizer.jsp";
     }
 
@@ -70,8 +88,9 @@ public class ModeratorController {
     public void setRecipeService(IRecipeService recipeService) {
         this.recipeService = recipeService;
     }
+
     @Autowired
-    public void setSearchFormService (ISearchFormService searchFormService) {
+    public void setSearchFormService(ISearchFormService searchFormService) {
         this.searchFormService = searchFormService;
     }
 }

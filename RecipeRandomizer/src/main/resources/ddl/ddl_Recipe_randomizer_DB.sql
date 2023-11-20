@@ -41,7 +41,8 @@ create table users
 create table recipes
 (
     id INT not null AUTO_INCREMENT,
-    name nVARCHAR(100) not null,
+    common_recipe_id int,
+    name nVARCHAR(200) not null,
     user_id int not null,
     meal_category_id int not null,
     regional_cuisine_id int,
@@ -49,13 +50,15 @@ create table recipes
     portions int,
     calories int,
     image_data mediumblob,
-    recipe_text nvarchar(3000) not null,
+    recipe_text nvarchar(5000) not null,
       constraint pk_id primary key (id),
       constraint fk_user_id foreign key (user_id) references users(id)
       on delete cascade on update cascade,
       constraint fk_meal_category_id foreign key (meal_category_id) references meal_categories(id)
       on delete cascade on update cascade,
       constraint fk_regional_cuisine_id foreign key (regional_cuisine_id) references regional_cuisines(id)
+      on delete set null on update cascade,
+      constraint fk_common_recipe_id foreign key (common_recipe_id) references recipes(id)
       on delete set null on update cascade
 );
 |
@@ -65,6 +68,7 @@ create index meal_category_in_recipes on recipes(meal_category_id);
 create index regional_cuisine_in_recipes on recipes(regional_cuisine_id);
 create index cooking_time_in_recipes on recipes(cooking_time);
 create index user_id_in_recipes on recipes(user_id);
+create index common_recipe_id on recipes(common_recipe_id);
 |
 
 create table dishes_by_ingredients
@@ -144,14 +148,6 @@ create table recipes_custom_tags
 
 
 
-
-
-
-
-
-
-
-
 insert into meal_categories
 (name)
 values
@@ -208,105 +204,9 @@ values
 |
 
 
-insert into users
-(username, password, own_name, role, enabled, registration_date)
-values
-('Admin', 'qwe', 'Олег', 'ADMIN', 1 ,'2023-11-12'),
-('Moderator', 'qwe', 'Олег', 'MODERATOR', 1 , '2023-11-12'),
-('Anna', '123', 'Аня', 'USER', 1 , '2023-11-12'),
-('Oleh', '456', 'Олег', 'USER', 1 , '2023-11-14');
 
-insert into custom_tags
-(name, user_id)
-values
-('швидкий перекус', 3),
-('святкові', 3),
-('в дорогу', 3),
-('на пікнік', 3);
 
-insert into recipes
-(name, user_id, meal_category_id, regional_cuisine_id, cooking_time, portions, calories, image_data, recipe_text)
-values
-('Яйця', 3, 1, 5, 30, 1, 100, null, 'варимо'),
-('Риба', 3, 2 , 4, 60, 2, 150, null, 'варимо '),
-('М`ясо', 3, 3 , 3, 120, 3, 200, null, 'варимо '),
-('Суп', 3, 4, 2, 20, 1, 300, null, 'варимо '),
-('Ковбаса', 3, 5 , 1, 15, 21, 250, null, 'варимо '),
-('Картопля', 3, 6 , 5, 50, 3, 1170, null, 'варимо '),
-('Кампот', 3, 1 , 4, 110, 1, 520, null, 'варимо '),
-('Шашлики', 3, 7 , 4, 110, 1, 520, null, 'варимо ');
 
-insert into recipes_dishes_by_ingredients
-(recipe_id, dish_by_ingredients_id)
-values
-(1,6),
-(2,5),
-(3,4),
-(4,3),
-(5,2),
-(6,1);
-
-insert into recipes_common_allergens
-(recipe_id, allergen_id)
-values
-(1,13),
-(2,12),
-(3,11),
-(4,10),
-(5,9),
-(6,8),
-(7,7),
-(6,6),
-(5,5),
-(4,4),
-(3,3),
-(2,2),
-(1,1);
-
-insert into recipes_custom_tags
-(recipe_id, custom_tag_id)
-values
-(8,1),
-(7,1),
-(7,2),
-(7,4),
-(8,3),
-(5,4),
-(6,2);
-|
-
-Update recipes
-set recipe_text = 'Бріош — це французька булочка зі здобного дріжджового тіста. Вирізняє її надзвичайно ніжна пухка текстура та благородна історія, що сягає аж 17 ст. Цілком імовірно, що сама Марія Антуанетта та король Людовик ласували бріошами. Хороші новини, ви абсолютно точно можете приготувати бріоші вдома. З тістом треба трохи повозитися, але ми ж не боїмося викликів?  До того ж кожна хвилина зусиль варта цього вишуканого смаку. На відмінну від профітролів з заварним кремом, бріош начиняти не потрібно, просто викладіть ложкою заварний крем на скибку та насолоджуйтеся!
-
-ТОНКОЩІ ПРИГОТУВАННЯ БУЛОЧОК БРІОШ ІЗ ЗАВАРНИМ КРЕМОМ
-Коротко згадаймо правила роботи з дріжджовим тістом. Розводити дріжджі треба в теплому, молоці, оптимальна температура 35-36 градусів. Якщо немає термометра, просто крапніть молоко на тильну сторону долоні: має бути тепло, але не гаряче. Перевірте пакування дріжджів, вони повинні бути свіжі.
-
-Тісто ставте підійматися у тепле місце без протягів та різких коливань температури. Якщо в дома холодно — увімкніть духовку, прочиніть дверцята та поставте миску з тістом поруч.
-
-Ми використовували 2 прямокутні металеві форми, розміром 24 на 11 см.
-
-З такої кількості інгредієнтів вийшло 2 бріоші.
-
-ЯК ПРИГОТУВАТИ БУЛОЧКУ БРІОШ
-ІНГРЕДІЄНТИ
-Для булочок
-120 мл молока
-12 г сухих дріжджів
-100 г цукру
-180 г масла
-6 яєць
-600 г борошна
-½ ч.л. солі
-1 жовток
-Для заварного крему
-500 мл молока
-100 г цукру
-50 г вершкового масла
-4 ст. л. пшеничного борошна
-½ ч. л. ванільного цукру
-1 яйце'
-where id = 1;
-|
 
 
 

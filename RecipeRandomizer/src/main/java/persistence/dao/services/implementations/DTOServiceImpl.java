@@ -78,6 +78,21 @@ public class DTOServiceImpl implements IDTOService {
     @PostAuthorize("returnObject.username == authentication.name || returnObject.username == \"Moderator\"")
     @Nullable
     @Override
+    public RecipeDTO findRecipeDTOForUser(long commonRecipeId, String username) {
+        List<Integer> recipeIds = null;
+        if (!(username.equalsIgnoreCase("Moderator")))
+            recipeIds = recipeRepository.getIdByCommonIdForUser(commonRecipeId, username);
+
+        if (recipeIds != null && !recipeIds.isEmpty())
+            return findRecipeDTO(recipeIds.get(0));
+        else
+            return findRecipeDTO(commonRecipeId);
+
+    }
+
+    @PostAuthorize("returnObject.username == authentication.name || returnObject.username == \"Moderator\"")
+    @Nullable
+    @Override
     public RecipeDTO findRecipeDTO(long id) {
         Optional<Recipe> optional = recipeRepository.findById(id);
         if (!optional.isPresent())

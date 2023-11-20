@@ -1,7 +1,7 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
-		<!DOCTYPE html>
+<!DOCTYPE html>
 		<html>
 
 		<head>
@@ -41,29 +41,47 @@
 
 		<body>
 		    <div class="header">
-                <sec:authorize access="hasRole('ROLE_MODERATOR')">
-                    <h1>Сторінка модератора</h1>
-                </sec:authorize>
+		         <sec:authorize access="hasRole('ROLE_MODERATOR')">
+                     <h1>Сторінка модератора</h1>
+                 </sec:authorize>
+
+		         <sec:authorize access="hasRole('ROLE_USER') and ${recipeDTO.username == 'Moderator'}">
+		           <h2>Загальний рецепт</h2>
+                 </sec:authorize>
             </div>
 
 
 
             <div class="button-container">
                 <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
-                <form id="updateRecipe" action="/recipe-handler" method="post">
-                    <input type="hidden" name="recipeID" value="${recipeDTO.id}">
-                    <button type="submit" class="form-button">Редагувати рецепт</button>
-                </form>
-                <form id="deleteRecipe" action="/delete-recipe" method="post">
-                    <button type="button" onclick="showConfirmation()" class="form-button">Видалити Рецепт</button>
-                    <input type="hidden" name="recipeID" value="${recipeDTO.id}">
-                    <input type="submit" id="hiddenDeleteButton" style="display: none;">
-                </form>
 
+                <sec:authorize access="!(hasRole('ROLE_USER') and ${recipeDTO.username == 'Moderator'})">
+                    <form id="updateRecipe" action="/recipe-handler" method="post">
+                        <input type="hidden" name="recipeID" value="${recipeDTO.id}">
+                        <button type="submit" class="form-button">Редагувати рецепт</button>
+                    </form>
+                </sec:authorize>
+
+                <sec:authorize access="!(hasRole('ROLE_USER') and ${recipeDTO.username == 'Moderator'})">
+                    <form id="deleteRecipe" action="/delete-recipe" method="post">
+                        <button type="button" onclick="showConfirmation()" class="form-button">Видалити Рецепт</button>
+                        <input type="hidden" name="recipeID" value="${recipeDTO.id}">
+                        <input type="submit" id="hiddenDeleteButton" style="display: none;">
+                    </form>
+                </sec:authorize>
+
+                <sec:authorize access="hasRole('ROLE_USER') and ${recipeDTO.username == 'Moderator'}">
+                    <form id="updateRecipe" action="/add-recipe-to-mine" method="post">
+                        <input type="hidden" name="recipeID" value="${recipeDTO.id}">
+                        <button type="submit" class="form-button">Додати рецепт до своїх</button>
+                    </form>
+                </sec:authorize>
             </div>
 
-            <div style="text-align: center; margin-top: 20px;"> <img id="recipeImage"
-			        style="max-width: 700px; max-height: 250px; width: auto; height: auto; margin: 0 auto;" /> </div>
+
+
+            <div style="text-align: center; margin-top: 20px;">
+            <img id="recipeImage" style="max-width: 900px; max-height: 300px; width: auto; height: auto; margin: 0 auto;" /> </div>
 			<h1 class="centered-title"> ${recipeDTO.name} </h1>
 			<p><b>Категорія:</b> ${recipeDTO.mealCategoryName}</p>
 			<p><b>Регіональна кухня:</b> ${recipeDTO.regionalCuisineName}</p>
@@ -139,14 +157,13 @@
 
 
       function showConfirmation() {
-              var result = window.confirm("Ви впевнені, що хочете видалити цей рецепт?");
-
-              if (result) {
-                  document.getElementById('hiddenDeleteButton').click();
-              } else {
-                  alert("Видалення рецепту відмінено !");
-              }
+          var result = window.confirm("Ви впевнені, що хочете видалити цей рецепт?");
+          if (result) {
+              document.getElementById('hiddenDeleteButton').click();
+          } else {
+              alert("Видалення рецепту відмінено !");
           }
+      }
 
     </script>
 

@@ -138,15 +138,16 @@ public class RecipeRandomizerController {
         try {
             Object sessionAttribute = session.getAttribute(sessionKey);
             if (!(sessionAttribute instanceof List<?>))
-                throw new EmptyRecipeIdsException();
+                throw new EmptyRecipeIdsException("Рецептів з такими параметрами не знайдено");
 
             List<?> rawList = (List<?>) sessionAttribute;
             if (rawList.isEmpty() || !(rawList.get(0) instanceof Long))
-                throw new EmptyRecipeIdsException();
+                throw new EmptyRecipeIdsException("Рецептів з такими параметрами не знайдено");
 
             List<Long> recipesIds = (List<Long>) rawList;
             Page<Recipe> recipesPage = searchFormService.findPageOfRecipesByIds(recipesIds, page, size);
 
+            model.addAttribute("recipesUsername", recipesPage.stream().findAny().get().getUser().getUsername());
             model.addAttribute("recipes", recipesPage.getContent());
             model.addAttribute("currentPage", page);
             model.addAttribute("totalPages", recipesPage.getTotalPages());
@@ -160,23 +161,37 @@ public class RecipeRandomizerController {
 
     @GetMapping(value = "/search-recipes-name-like")
     public String searchRecipesNameLike(@RequestParam(name = "recipesNameLike", required = false) String recipeName,
-                                        HttpServletRequest request, HttpSession session) {
+                                        HttpServletRequest request, HttpSession session, RedirectAttributes redirectAttributes) {
         if (recipeName == null || recipeName.isEmpty())
             return "redirect:/main";
 
         String username = request.getUserPrincipal().getName();
-        List<Long> recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, username);
+
+        List<Long> recipeIds;
+        try {
+            recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, username);
+        } catch (EmptyRecipeIdsException e){
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
+
         String sessionKey = username + "recipeIds";
         session.setAttribute(sessionKey, recipeIds);
-
         return "redirect:/recipes-found";
     }
 
     @GetMapping(value = "/search-recipes-by-form")
-    public String searchRecipesIdsByForm(@ModelAttribute("searchModel") SearchModel searchModel,
-                                         HttpServletRequest request, HttpSession session) {
+    public String searchRecipesIdsByForm(@ModelAttribute("searchModel") SearchModel searchModel, HttpSession session,
+                                         RedirectAttributes redirectAttributes, HttpServletRequest request) {
         String username = request.getUserPrincipal().getName();
-        List<Long> recipeIds = searchFormService.findRecipeIdsForUserBySearchModel(searchModel, username);
+        List<Long> recipeIds;
+        try {
+            recipeIds = searchFormService.findRecipeIdsForUserBySearchModel(searchModel, username);
+        } catch (EmptyRecipeIdsException e) {
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
+
         String sessionKey = username + "recipeIds";
         session.setAttribute(sessionKey, recipeIds);
 
@@ -184,12 +199,17 @@ public class RecipeRandomizerController {
     }
 
     @GetMapping(value = "/recipe-search-randomizer")
-    public String recipeSearchRandomizer(@ModelAttribute("searchModel") SearchModel searchModel,
-                                         Model model, HttpServletRequest request) {
+    public String recipeSearchRandomizer(@ModelAttribute("searchModel") SearchModel searchModel, Model model,
+                                         HttpServletRequest request, RedirectAttributes redirectAttributes) {
         String username = request.getUserPrincipal().getName();
-        String recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, username);
+        String recipesIdsJson;
+        try {
+            recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, username);
+        } catch (EmptyRecipeIdsException e){
+            redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
+            return "redirect:/main";
+        }
         model.addAttribute("recipesIdsJson", recipesIdsJson);
-
         System.out.println("/recipe-search-randomizer  recipesIdsJson.length: " + recipesIdsJson.length());
         return "/WEB-INF/views/recipe_randomizer.jsp";
     }
@@ -197,7 +217,9 @@ public class RecipeRandomizerController {
     @GetMapping(value = "/recipe/{id}")
     public String getRecipeById(@PathVariable Long id, Model model, HttpServletRequest request,
                                 RedirectAttributes redirectAttributes) {
-        RecipeDTO recipeDTO = dtoService.findRecipeDTO(id);
+
+        String username = request.getUserPrincipal().getName();
+        RecipeDTO recipeDTO = dtoService.findRecipeDTOForUser(id, username);
 
         if (recipeDTO == null) {
             redirectAttributes.addFlashAttribute("message", "Рецепт не знайдено");
@@ -205,12 +227,7 @@ public class RecipeRandomizerController {
         }
 
         model.addAttribute("recipeDTO", recipeDTO);
-        if (recipeDTO.getUsername().equals("Moderator") &&
-                !request.getUserPrincipal().getName().equals("Moderator")) {
-            return "/WEB-INF/views/common_recipe.jsp";
-        } else {
-            return "/WEB-INF/views/recipe.jsp";
-        }
+        return "/WEB-INF/views/recipe.jsp";
     }
 
     @PostMapping(value = "/add-recipe-to-mine")

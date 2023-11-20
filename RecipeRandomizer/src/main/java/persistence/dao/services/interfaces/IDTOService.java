@@ -14,4 +14,5 @@ public interface IDTOService {
     List<CustomTagDTO> findAllCustomTagsForUser(String username);
     List<UserDTO> findAllUsers();
     RecipeDTO findRecipeDTO(long id);
+    RecipeDTO findRecipeDTOForUser(long commonRecipeId, String username);
 }

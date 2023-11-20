@@ -2,6 +2,7 @@ package models;
 
 import lombok.Data;
 import persistence.entity.*;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -9,6 +10,7 @@ import java.util.List;
 @Data
 public class RecipeDTO {
     private Long id;
+    private Long commonRecipeId;
     private String name;
     private String username;
     private String mealCategoryName;
@@ -28,7 +30,7 @@ public class RecipeDTO {
     private String recipeTextLine;
     private byte[] imageData;
 
-    public RecipeDTO(){
+    public RecipeDTO() {
         dishesByIngredientsNames = new ArrayList<>();
         dishesByIngredientsIds = new ArrayList<>();
         allergensNames = new ArrayList<>();
@@ -37,8 +39,10 @@ public class RecipeDTO {
         customTagsIds = new ArrayList<>();
     }
 
-    public RecipeDTO (Recipe recipe){
+    public RecipeDTO(Recipe recipe) {
         this.id = recipe.getId();
+        if (recipe.getCommonRecipeId() != null)
+            this.commonRecipeId = recipe.getCommonRecipeId().getId();
         this.name = recipe.getName();
         this.username = recipe.getUser().getUsername();
         this.mealCategoryName = recipe.getMealCategory().getName();
@@ -56,12 +60,11 @@ public class RecipeDTO {
         customTagsIds = new ArrayList<>();
     }
 
-    public void setRecipeText (String text){
-        if (text != null){
+    public void setRecipeText(String text) {
+        if (text != null) {
             this.recipeTextLine = text;
             this.recipeText = text.split("\n");
-        }
-        else{
+        } else {
             this.recipeTextLine = "";
             this.recipeText = new String[]{""};
         }

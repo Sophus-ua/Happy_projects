@@ -3,7 +3,6 @@ package persistence.entity;
 
 import lombok.Data;
 import lombok.ToString;
-
 import javax.persistence.*;
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +14,10 @@ public class Recipe {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
+
+    @OneToOne
+    @JoinColumn(name = "common_recipe_id")
+    private Recipe commonRecipeId;
 
     @Column(nullable = false)
     private String name;

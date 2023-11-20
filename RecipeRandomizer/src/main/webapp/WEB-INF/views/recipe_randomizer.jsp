@@ -1,5 +1,5 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8" %>
-	<!DOCTYPE html>
+<!DOCTYPE html>
 	<html>
 
 	<style>
@@ -45,7 +45,13 @@
     </style>
 
 	<body>
-	    <div class="header"></div>
+	    <div class="header">
+            <div style="text-align: center;">
+                <c:if test="${not empty message}">
+                    <p style="font-weight: bold; font-size: 30px; ">${message}</p>
+                </c:if>
+            </div>
+        </div>
 
 
 	    <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>

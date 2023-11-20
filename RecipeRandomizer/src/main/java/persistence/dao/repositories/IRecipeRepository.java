@@ -14,12 +14,22 @@ import persistence.entity.Recipe;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
+
 
 
 @Repository
 @Transactional
 public interface IRecipeRepository extends CrudRepository<Recipe, Long> {
+
+    @Query(value = "select r.id from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.common_recipe_id = ?1 and u.username = ?2", nativeQuery = true)
+    List<Integer> getIdByCommonIdForUser(long commonRecipeId, String username);
+
+    @Query(value = "select count(*) > 0 from recipes r\n" +
+            "join users u on u.id = r.user_id\n" +
+            "where r.common_recipe_id = ?1 and u.username = ?2", nativeQuery = true)
+    Integer isCommonRecipeIdInUserRecipe(long commonRecipeId, String username);
 
     @Query(value = "select * from recipes where id in :longIds", nativeQuery = true)
     Page<Recipe> findAllPagesById(@Param("longIds") List<Long> longIds, Pageable pageable);
