@@ -25,11 +25,18 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 public class RecipeServiceImpl implements IRecipeService {
-    private IRecipeRepository recipeRepository;
+    private final IRecipeRepository recipeRepository;
 
-    private IUserRepository userRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public RecipeServiceImpl(IRecipeRepository recipeRepository, IUserRepository userRepository) {
+        this.recipeRepository = recipeRepository;
+        this.userRepository = userRepository;
+    }
+
     @Override
-    public boolean commonRecipeIsPresent(Long commonRecipeId, String username){
+    public boolean commonRecipeIsPresent(Long commonRecipeId, String username) {
         Integer isPresent = recipeRepository.isCommonRecipeIdInUserRecipe(commonRecipeId, username);
         return isPresent > 0;
     }
@@ -94,7 +101,7 @@ public class RecipeServiceImpl implements IRecipeService {
     @NonNull
     public Long copyRecipeToUserById(String username, Long commonRecipeId) throws DatabaseUpdateException {
         Integer isPresent = recipeRepository.isCommonRecipeIdInUserRecipe(commonRecipeId, username);
-        if (isPresent >0)
+        if (isPresent > 0)
             throw new DatabaseUpdateException(Messages.COMMON_RECIPE_IS_PRESENT.message);
 
         Optional<Recipe> recipeOptional = recipeRepository.findById(commonRecipeId);
@@ -146,15 +153,5 @@ public class RecipeServiceImpl implements IRecipeService {
         Messages(String message) {
             this.message = message;
         }
-    }
-
-    @Autowired
-    public void setAllergenRepository(IRecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
-    }
-
-    @Autowired
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

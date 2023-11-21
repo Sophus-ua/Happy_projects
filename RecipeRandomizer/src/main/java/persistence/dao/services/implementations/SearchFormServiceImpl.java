@@ -23,7 +23,12 @@ import java.util.stream.StreamSupport;
 @Service
 public class SearchFormServiceImpl implements ISearchFormService {
 
-    private IRecipeRepository recipeRepository;
+    private final IRecipeRepository recipeRepository;
+
+    @Autowired
+    public SearchFormServiceImpl(IRecipeRepository recipeRepository) {
+        this.recipeRepository = recipeRepository;
+    }
 
     @Override
     @NonNull
@@ -187,10 +192,5 @@ public class SearchFormServiceImpl implements ISearchFormService {
     private enum FilteringParameter {
         BY_MEAL_CATEGORY, BY_REGIONAL_CUISINE, BY_COOKING_TIME,
         BY_DISHES_INGREDIENTS, BY_ALLERGENS, BY_TAGS
-    }
-
-    @Autowired
-    public void setRecipeRepository(IRecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
     }
 }

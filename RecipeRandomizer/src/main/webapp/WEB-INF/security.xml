@@ -32,6 +32,7 @@
         <remember-me key="myGoodKey" token-validity-seconds="100000"/>
     </http>
 
+
     <beans:bean id="customAuthenticationSuccessHandler" class="aspects.CustomAuthenticationSuccessHandler">
         <beans:property name="defaultTargetUrl" value="/main" />
         <beans:property name="adminTargetUrl" value="/admin/main" />
@@ -48,6 +49,9 @@
     <beans:bean id="authenticationProvider" class="aspects.CustomAuthenticationProvider"/>
     <beans:bean id="webSecurityExpressionHandler"
                 class="org.springframework.security.web.access.expression.DefaultWebSecurityExpressionHandler"/>
+    <beans:bean id="passwordEncoder" class="org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder">
+        <beans:constructor-arg name="strength" value="11"/>
+    </beans:bean>
 
 
     <!-- Configuration for JDBC authentication -->

@@ -17,18 +17,31 @@ import persistence.entity.*;
 import java.util.*;
 
 
-
 @Slf4j
 @Service
 public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
 
-    private IMealCategoryRepository mealCategoryRepository;
-    private IRegionalCuisineRepository regionalCuisineRepository;
-    private IDishByIngredientsRepository dishByIngredientsRepository;
-    private IAllergenRepository allergenRepository;
-    private ICustomTagRepository customTagRepository;
-    private IRecipeRepository recipeRepository;
-    private IUserRepository userRepository;
+    private final IMealCategoryRepository mealCategoryRepository;
+    private final IRegionalCuisineRepository regionalCuisineRepository;
+    private final IDishByIngredientsRepository dishByIngredientsRepository;
+    private final IAllergenRepository allergenRepository;
+    private final ICustomTagRepository customTagRepository;
+    private final IRecipeRepository recipeRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public RecipeDesignerServiceImpl(IMealCategoryRepository mealCategoryRepository, IRecipeRepository recipeRepository,
+                                     IRegionalCuisineRepository regionalCuisineRepository, IUserRepository userRepository,
+                                     IAllergenRepository allergenRepository, ICustomTagRepository customTagRepository,
+                                     IDishByIngredientsRepository dishByIngredientsRepository) {
+        this.mealCategoryRepository = mealCategoryRepository;
+        this.regionalCuisineRepository = regionalCuisineRepository;
+        this.dishByIngredientsRepository = dishByIngredientsRepository;
+        this.allergenRepository = allergenRepository;
+        this.customTagRepository = customTagRepository;
+        this.recipeRepository = recipeRepository;
+        this.userRepository = userRepository;
+    }
 
     @Nullable
     @Override
@@ -54,7 +67,7 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
             Optional<Recipe> optional = recipeRepository.findById(recipeDTO.getId());
             if (optional.isPresent()) {
                 recipe = optional.get();
-                if (!recipe.getUser().getUsername().equalsIgnoreCase(recipeDTO.getUsername()) )
+                if (!recipe.getUser().getUsername().equalsIgnoreCase(recipeDTO.getUsername()))
                     throw new DatabaseUpdateException(ResultOfUpdateOrAddRecipe.FAILED_TO_UPDATE.message);
             }
         }
@@ -76,7 +89,7 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
 
     @Transactional
     @NonNull
-    private Recipe fillRecipe(Recipe recipe, RecipeDTO recipeDTO){
+    private Recipe fillRecipe(Recipe recipe, RecipeDTO recipeDTO) {
         recipe.setName(recipeDTO.getName());
 
         Optional<User> optionalU = userRepository.findByUsername(recipeDTO.getUsername());
@@ -123,6 +136,7 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
             recipe.addDishByIngredients(d);
         }
     }
+
     @Transactional
 
     private void updateAllergens(Recipe recipe, List<Long> allergensIds) {
@@ -164,40 +178,5 @@ public class RecipeDesignerServiceImpl implements IRecipeDesignerService {
         ResultOfUpdateOrAddRecipe(String message) {
             this.message = message;
         }
-    }
-
-    @Autowired
-    public void setMealCategoryRepository(IMealCategoryRepository mealCategoryRepository) {
-        this.mealCategoryRepository = mealCategoryRepository;
-    }
-
-    @Autowired
-    public void setRegionalCuisineRepository(IRegionalCuisineRepository regionalCuisineRepository) {
-        this.regionalCuisineRepository = regionalCuisineRepository;
-    }
-
-    @Autowired
-    public void setDishByIngredientsRepository(IDishByIngredientsRepository dishByIngredientsRepository) {
-        this.dishByIngredientsRepository = dishByIngredientsRepository;
-    }
-
-    @Autowired
-    public void setAllergenRepository(IAllergenRepository allergenRepository) {
-        this.allergenRepository = allergenRepository;
-    }
-
-    @Autowired
-    public void setCustomTagRepository(ICustomTagRepository customTagRepository) {
-        this.customTagRepository = customTagRepository;
-    }
-
-    @Autowired
-    public void setRecipeRepository(IRecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
-    }
-
-    @Autowired
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

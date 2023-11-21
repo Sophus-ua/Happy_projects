@@ -14,16 +14,13 @@ import java.io.IOException;
 
 @Component
 public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private IUserService userService;
+    private final IUserService userService;
     private String adminTargetUrl;
-//    private String moderatorTargetUrl;
 
-    public void setAdminTargetUrl(String adminTargetUrl) {
-        this.adminTargetUrl = adminTargetUrl;
+    @Autowired
+    public CustomAuthenticationSuccessHandler(IUserService userService) {
+        this.userService = userService;
     }
-//    public void setModeratorTargetUrl(String moderatorTargetUrl) {
-//        this.moderatorTargetUrl = moderatorTargetUrl;
-//    }
 
     @Override
     protected String determineTargetUrl(HttpServletRequest request, HttpServletResponse response,
@@ -31,15 +28,12 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"))) {
             return adminTargetUrl;
         }
-//        if (authentication.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_MODERATOR"))) {
-//            return moderatorTargetUrl;
-//        }
         return super.determineTargetUrl(request, response, authentication);
     }
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
-                                           Authentication authentication) throws ServletException, IOException {
+                                        Authentication authentication) throws ServletException, IOException {
         if (authentication.getPrincipal() instanceof UserDetails) {
             UserDetails userDetails = (UserDetails) authentication.getPrincipal();
             updateLastLoginDate(userDetails.getUsername());
@@ -51,8 +45,7 @@ public class CustomAuthenticationSuccessHandler extends SimpleUrlAuthenticationS
         userService.updateLastLoginDateByUsername(username);
     }
 
-    @Autowired
-    public void setUserService(IUserService userService) {
-        this.userService = userService;
+    public void setAdminTargetUrl(String adminTargetUrl) {
+        this.adminTargetUrl = adminTargetUrl;
     }
 }

@@ -22,13 +22,27 @@ import java.util.stream.StreamSupport;
 @Slf4j
 @Service
 public class DTOServiceImpl implements IDTOService {
-    private IMealCategoryRepository mealCategoryRepository;
-    private IRegionalCuisineRepository regionalCuisineRepository;
-    private IDishByIngredientsRepository dishByIngredientsRepository;
-    private IAllergenRepository allergenRepository;
-    private ICustomTagRepository customTagRepository;
-    private IRecipeRepository recipeRepository;
-    private IUserRepository userRepository;
+    private final IMealCategoryRepository mealCategoryRepository;
+    private final IRegionalCuisineRepository regionalCuisineRepository;
+    private final IDishByIngredientsRepository dishByIngredientsRepository;
+    private final IAllergenRepository allergenRepository;
+    private final ICustomTagRepository customTagRepository;
+    private final IRecipeRepository recipeRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public DTOServiceImpl(IMealCategoryRepository mealCategoryRepository, IAllergenRepository allergenRepository,
+                          IRegionalCuisineRepository regionalCuisineRepository, IRecipeRepository recipeRepository,
+                          ICustomTagRepository customTagRepository, IUserRepository userRepository,
+                          IDishByIngredientsRepository dishByIngredientsRepository) {
+        this.mealCategoryRepository = mealCategoryRepository;
+        this.regionalCuisineRepository = regionalCuisineRepository;
+        this.dishByIngredientsRepository = dishByIngredientsRepository;
+        this.allergenRepository = allergenRepository;
+        this.customTagRepository = customTagRepository;
+        this.recipeRepository = recipeRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public List<MealCategoryDTO> findAllMealCategories() {
@@ -143,41 +157,5 @@ public class DTOServiceImpl implements IDTOService {
                 .stream(iterable.spliterator(), false)
                 .map(UserDTO::new)
                 .collect(Collectors.toList());
-    }
-
-
-    @Autowired
-    public void setMealCategoryRepository(IMealCategoryRepository mealCategoryRepository) {
-        this.mealCategoryRepository = mealCategoryRepository;
-    }
-
-    @Autowired
-    public void setRegionalCuisineRepository(IRegionalCuisineRepository regionalCuisineRepository) {
-        this.regionalCuisineRepository = regionalCuisineRepository;
-    }
-
-    @Autowired
-    public void setDishByIngredientsRepository(IDishByIngredientsRepository dishByIngredientsRepository) {
-        this.dishByIngredientsRepository = dishByIngredientsRepository;
-    }
-
-    @Autowired
-    public void setAllergenRepository(IAllergenRepository allergenRepository) {
-        this.allergenRepository = allergenRepository;
-    }
-
-    @Autowired
-    public void setCustomTagRepository(ICustomTagRepository customTagRepository) {
-        this.customTagRepository = customTagRepository;
-    }
-
-    @Autowired
-    public void setRecipeRepository(IRecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
-    }
-
-    @Autowired
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

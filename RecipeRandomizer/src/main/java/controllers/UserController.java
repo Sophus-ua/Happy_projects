@@ -21,7 +21,12 @@ import java.security.Principal;
 @Controller
 @RequestMapping("/user")
 public class UserController {
-    private  IUserService userService;
+    private final IUserService userService;
+
+    @Autowired
+    public UserController(IUserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping(value = "/")
     public String getSome(@AuthenticationPrincipal UserDetails userDetails, HttpServletRequest request) {
@@ -37,16 +42,15 @@ public class UserController {
     }
 
 
-
     @GetMapping(value = "/registration")
     public String getRegistration(Model model) {
         return "/WEB-INF/views/registration.jsp";
     }
 
     @PostMapping(value = "/registration")
-    public String postRegistration(@ModelAttribute("userDTO")UserDTO userDTO, RedirectAttributes redirectAttributes,
+    public String postRegistration(@ModelAttribute("userDTO") UserDTO userDTO, RedirectAttributes redirectAttributes,
                                    Model model) {
-        try{
+        try {
             redirectAttributes.addFlashAttribute("message", userService.registrationNewUser(userDTO));
             return "redirect:/user/login";
         } catch (LoginAndRegistrationException e) {
@@ -55,7 +59,7 @@ public class UserController {
         }
     }
 
-     @GetMapping("/login")
+    @GetMapping("/login")
     public String showLoginForm(@RequestParam(name = "error", required = false) String error,
                                 @RequestParam(name = "message", required = false) String message,
                                 @RequestParam(name = "logout", required = false) String logout,
@@ -63,10 +67,10 @@ public class UserController {
         if (error != null) {
             model.addAttribute("error", "Невірний логін чи пароль :(");
         }
-        if (logout != null){
+        if (logout != null) {
             model.addAttribute("message", "Введіть логін і пароль");
         }
-        if (message != null){
+        if (message != null) {
             model.addAttribute("message", message);
         }
         return "/WEB-INF/views/login.jsp";
@@ -82,10 +86,4 @@ public class UserController {
     public String getAccessDenied() {
         return "/WEB-INF/views/access_denied.jsp";
     }
-
-    @Autowired
-    public void setUserService(IUserService userService) {
-        this.userService = userService;
-    }
-
 }

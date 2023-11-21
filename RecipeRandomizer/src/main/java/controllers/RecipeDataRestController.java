@@ -24,16 +24,24 @@ import java.util.Map;
 @RequestMapping("/data")
 public class RecipeDataRestController {
 
-    private IDTOService dtoService;
-    private IRecipeService recipeService;
-    private IRecipeImageCacheService recipeImageCacheService;
+    private final IDTOService dtoService;
+    private final IRecipeService recipeService;
+    private final IRecipeImageCacheService recipeImageCacheService;
+
+    @Autowired
+    public RecipeDataRestController(IDTOService dtoService, IRecipeService recipeService,
+                                    IRecipeImageCacheService recipeImageCacheService) {
+        this.dtoService = dtoService;
+        this.recipeService = recipeService;
+        this.recipeImageCacheService = recipeImageCacheService;
+    }
 
     @PostMapping(value = "/add-recipe-to-mine")
     public void addRecipeToMine(@RequestBody Map<String, Object> request, Authentication authentication) {
         try {
             Long commonRecipeId = Long.valueOf(request.get("recipeId").toString());
             String username = authentication.getName();
-            System.out.println("commonRecipeId: " + commonRecipeId +" username: "+ username);
+            System.out.println("commonRecipeId: " + commonRecipeId + " username: " + username);
             recipeService.copyRecipeToUserById(username, commonRecipeId);
         } catch (DatabaseUpdateException | NumberFormatException e) {
             System.out.println(e.getMessage());
@@ -46,7 +54,7 @@ public class RecipeDataRestController {
         try {
             Long commonRecipeId = Long.valueOf(request.get("recipeId").toString());
             String username = authentication.getName();
-            boolean  commonRecipeIsPresent = recipeService.commonRecipeIsPresent(commonRecipeId, username);
+            boolean commonRecipeIsPresent = recipeService.commonRecipeIsPresent(commonRecipeId, username);
             return new ResponseEntity<>(commonRecipeIsPresent, HttpStatus.OK);
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body(false);
@@ -152,21 +160,5 @@ public class RecipeDataRestController {
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
-    }
-
-
-    @Autowired
-    public void setRecipeService(IRecipeService recipeService) {
-        this.recipeService = recipeService;
-    }
-
-    @Autowired
-    public void setRegionalCuisineService(IDTOService dtoService) {
-        this.dtoService = dtoService;
-    }
-
-    @Autowired
-    public void setRecipeImageCacheService(IRecipeImageCacheService recipeImageCacheService) {
-        this.recipeImageCacheService = recipeImageCacheService;
     }
 }

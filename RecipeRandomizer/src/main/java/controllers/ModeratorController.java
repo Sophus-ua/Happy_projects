@@ -23,8 +23,15 @@ import java.util.List;
 @PreAuthorize("isAuthenticated")
 @RequestMapping("/common")
 public class ModeratorController {
-    private IRecipeService recipeService;
-    private ISearchFormService searchFormService;
+    private final IRecipeService recipeService;
+    private final ISearchFormService searchFormService;
+
+
+    @Autowired
+    public ModeratorController(IRecipeService recipeService, ISearchFormService searchFormService) {
+        this.recipeService = recipeService;
+        this.searchFormService = searchFormService;
+    }
 
     @GetMapping(value = "/search-recipes-name-like")
     public String searchRecipesNameLike(@RequestParam(name = "recipesNameLike", required = false) String recipeName,
@@ -37,7 +44,7 @@ public class ModeratorController {
         List<Long> recipeIds;
         try {
             recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, "Moderator");
-        } catch (EmptyRecipeIdsException e){
+        } catch (EmptyRecipeIdsException e) {
             redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
             return "redirect:/main";
         }
@@ -82,15 +89,5 @@ public class ModeratorController {
         System.out.println("/recipe-search-randomizer  recipesIdsJson.length: " + recipesIdsJson.length());
         model.addAttribute("message", "Загальні рецепти");
         return "/WEB-INF/views/recipe_randomizer.jsp";
-    }
-
-    @Autowired
-    public void setRecipeService(IRecipeService recipeService) {
-        this.recipeService = recipeService;
-    }
-
-    @Autowired
-    public void setSearchFormService(ISearchFormService searchFormService) {
-        this.searchFormService = searchFormService;
     }
 }

@@ -8,7 +8,6 @@ import models.RecipeDTO;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
-import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
@@ -27,10 +26,19 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class RecipeImageCacheServiceImpl implements IRecipeImageCacheService {
-    private CacheManager cacheManager;
-    private IRecipeRepository recipeRepository;
-    private IImageBufferRepository imageBufferRepository;
-    private IUserRepository userRepository;
+    private final CacheManager cacheManager;
+    private final IRecipeRepository recipeRepository;
+    private final IImageBufferRepository imageBufferRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public RecipeImageCacheServiceImpl(IRecipeRepository recipeRepository, IUserRepository userRepository,
+                                       IImageBufferRepository imageBufferRepository, CacheManager cacheManager) {
+        this.cacheManager = cacheManager;
+        this.recipeRepository = recipeRepository;
+        this.imageBufferRepository = imageBufferRepository;
+        this.userRepository = userRepository;
+    }
 
     @Transactional
     @Override
@@ -137,27 +145,6 @@ public class RecipeImageCacheServiceImpl implements IRecipeImageCacheService {
 //        }
         return imageData;
     }
-
-    @Autowired
-    public void setCacheManager(CacheManager cacheManager) {
-        this.cacheManager = cacheManager;
-    }
-
-    @Autowired
-    public void setRecipeRepository(IRecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
-    }
-
-    @Autowired
-    public void setImageBufferRepository(IImageBufferRepository imageBufferRepository) {
-        this.imageBufferRepository = imageBufferRepository;
-    }
-
-    @Autowired
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
 
     @Override
     @Nullable

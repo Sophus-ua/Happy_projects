@@ -16,8 +16,14 @@ import java.util.Optional;
 @Slf4j
 @Service
 public class CustomTagsServiceImpl implements ICustomTagsService {
-    private ICustomTagRepository customTagRepository;
-    private IUserRepository userRepository;
+    private final ICustomTagRepository customTagRepository;
+    private final IUserRepository userRepository;
+
+    @Autowired
+    public CustomTagsServiceImpl(ICustomTagRepository customTagRepository, IUserRepository userRepository) {
+        this.customTagRepository = customTagRepository;
+        this.userRepository = userRepository;
+    }
 
     @Override
     public String addCustomTag(CustomTagDTO customTagDTO) {
@@ -65,14 +71,5 @@ public class CustomTagsServiceImpl implements ICustomTagsService {
             this.message = message;
         }
 
-    }
-
-    @Autowired
-    public void setCustomTagRepository(ICustomTagRepository customTagRepository) {
-        this.customTagRepository = customTagRepository;
-    }
-    @Autowired
-    public void setUserRepository(IUserRepository userRepository) {
-        this.userRepository = userRepository;
     }
 }

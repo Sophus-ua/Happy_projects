@@ -16,8 +16,14 @@ import persistence.dao.services.interfaces.IUserService;
 @PreAuthorize("isAuthenticated")
 @RequestMapping("/admin")
 public class AdminController {
-    private IDTOService dtoService;
-    private IUserService userService;
+    private final IDTOService dtoService;
+    private final IUserService userService;
+
+    @Autowired
+    public AdminController(IDTOService dtoService, IUserService userService) {
+        this.dtoService = dtoService;
+        this.userService = userService;
+    }
 
     @RequestMapping(value = "/main", method = RequestMethod.GET)
     public String mainPage() {
@@ -45,16 +51,5 @@ public class AdminController {
         String message = userService.deleteUserById(userId);
         redirectAttributes.addFlashAttribute("message", message);
         return "redirect:/admin/user-handler";
-    }
-
-
-
-    @Autowired
-    public void setDtoService(IDTOService dtoService){
-        this.dtoService = dtoService;
-    }
-    @Autowired
-    public void setUserService(IUserService userService){
-        this.userService = userService;
     }
 }

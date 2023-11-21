@@ -15,7 +15,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import persistence.dao.services.interfaces.*;
 import persistence.entity.Recipe;
@@ -26,12 +25,24 @@ import java.util.List;
 @Controller
 @PreAuthorize("isAuthenticated")
 public class RecipeRandomizerController {
-    private ISearchFormService searchFormService;
-    private IRecipeService recipeService;
-    private IDTOService dtoService;
-    private IRecipeDesignerService recipeDesignerService;
-    private IRecipeImageCacheService recipeImageCacheService;
-    private ICustomTagsService customTagsService;
+    private final ISearchFormService searchFormService;
+    private final IRecipeService recipeService;
+    private final IDTOService dtoService;
+    private final IRecipeDesignerService recipeDesignerService;
+    private final IRecipeImageCacheService recipeImageCacheService;
+    private final ICustomTagsService customTagsService;
+
+    @Autowired
+    public RecipeRandomizerController(ISearchFormService searchFormService, ICustomTagsService customTagsService,
+                                      IRecipeDesignerService recipeDesignerService, IRecipeService recipeService,
+                                      IRecipeImageCacheService recipeImageCacheService, IDTOService dtoService) {
+        this.searchFormService = searchFormService;
+        this.recipeService = recipeService;
+        this.dtoService = dtoService;
+        this.recipeDesignerService = recipeDesignerService;
+        this.recipeImageCacheService = recipeImageCacheService;
+        this.customTagsService = customTagsService;
+    }
 
 
     @RequestMapping(value = "/main", method = RequestMethod.GET)
@@ -170,7 +181,7 @@ public class RecipeRandomizerController {
         List<Long> recipeIds;
         try {
             recipeIds = recipeService.findRecipeIdsByNameLikeForUser(recipeName, username);
-        } catch (EmptyRecipeIdsException e){
+        } catch (EmptyRecipeIdsException e) {
             redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
             return "redirect:/main";
         }
@@ -205,7 +216,7 @@ public class RecipeRandomizerController {
         String recipesIdsJson;
         try {
             recipesIdsJson = searchFormService.getRandomizeRecipeIdsJSON(searchModel, username);
-        } catch (EmptyRecipeIdsException e){
+        } catch (EmptyRecipeIdsException e) {
             redirectAttributes.addFlashAttribute("message", e.getCustomMessage());
             return "redirect:/main";
         }
@@ -247,36 +258,5 @@ public class RecipeRandomizerController {
         }
 
         return "redirect:/recipe/" + newRecipeId;
-    }
-
-
-    @Autowired
-    public void setRecipeService(IRecipeService recipeService) {
-        this.recipeService = recipeService;
-    }
-
-    @Autowired
-    public void setSearchFormService(ISearchFormService searchFormService) {
-        this.searchFormService = searchFormService;
-    }
-
-    @Autowired
-    public void setRegionalCuisineService(IDTOService dtoService) {
-        this.dtoService = dtoService;
-    }
-
-    @Autowired
-    public void setRecipeDesignerService(IRecipeDesignerService recipeDesignerService) {
-        this.recipeDesignerService = recipeDesignerService;
-    }
-
-    @Autowired
-    public void setRecipeImageCacheService(IRecipeImageCacheService recipeImageCacheService) {
-        this.recipeImageCacheService = recipeImageCacheService;
-    }
-
-    @Autowired
-    public void setCustomTagsService(ICustomTagsService customTagsService) {
-        this.customTagsService = customTagsService;
     }
 }

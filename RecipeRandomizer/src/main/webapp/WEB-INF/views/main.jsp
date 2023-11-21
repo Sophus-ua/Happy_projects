@@ -185,7 +185,7 @@
         </div>
         <div style="border: 1px solid #000; padding: 5px;">
             <label for="cookingTime">Час приготування не більше (хвилин):</label>
-            <input type="number" id="cookingTime" name="maxCookingTime" value="1000" style="margin-top: 10px;">
+            <input type="number" id="cookingTime" name="maxCookingTime" value="10000" style="margin-top: 10px;">
         </div>
 
 
