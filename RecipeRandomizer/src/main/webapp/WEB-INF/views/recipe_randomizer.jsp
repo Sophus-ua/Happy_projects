@@ -46,7 +46,7 @@
 
 	<body>
 	    <div class="header">
-            <div style="text-align: center;">
+	        <div style="text-align: center;">
                 <c:if test="${not empty message}">
                     <p style="font-weight: bold; font-size: 30px; ">${message}</p>
                 </c:if>
@@ -54,7 +54,7 @@
         </div>
 
 
-	    <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
+        <button type="button" onclick="window.location.href='/main'" class="form-button">На головну сторінку</button>
 		<div class="button-container">
 			<button id="prevButton">Назад</button>
 			<button id="selectButton">Вибрати</button>

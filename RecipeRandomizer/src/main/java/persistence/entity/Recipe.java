@@ -94,13 +94,20 @@ public class Recipe {
     }
 
     public Recipe(String name, MealCategory mealCategory, String recipeText, User user) {
-        this.name = name;
+        setName(name);
         this.mealCategory = mealCategory;
-        this.recipeText = recipeText;
+        setRecipeText(recipeText);
         this.user = user;
         dishesByIngredients = new ArrayList<>();
         allergens = new ArrayList<>();
         customTags = new ArrayList<>();
+    }
+
+    public void setRecipeText(String recipeText){
+        this.recipeText = recipeText.replaceAll("'", "`");
+    }
+    public void setName (String name){
+        this.name = name.replaceAll("'", "`");
     }
 
     public void addDishByIngredients(DishByIngredients dishByIngredients) {

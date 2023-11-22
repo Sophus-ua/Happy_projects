@@ -156,7 +156,7 @@
     <form action="/search-recipes-by-form" method="get" class="form searchForm" id="searchForm">
 
         <input type="submit" value="12 рандомних Своїх рецептів" class="search submit" formaction="/recipe-search-randomizer">
-        <h2 class="centered-title">Пошук за критеріями</h2>
+        <h1 class="centered-title">Пошук за фільтрами</h1>
         <sec:authorize access="hasRole('ROLE_USER')">
            <input type="submit" value="12 рандомних Загальних рецептів" class="search submit" formaction="/common/recipe-search-randomizer">
         </sec:authorize>

@@ -36,11 +36,14 @@ public class CustomTag {
     }
 
     public CustomTag(String name, User user) {
-        this.name = name;
+        setName (name);
         this.user = user;
         recipes = new ArrayList<>();
     }
 
+    public void setName (String name){
+        this.name = name.replaceAll("'", "`");
+    }
     public void addRecipe(Recipe recipe) {
         recipe.addCustomTag(this);
     }
